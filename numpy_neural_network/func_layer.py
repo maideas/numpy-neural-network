@@ -31,7 +31,7 @@ class Linear(FuncLayer):
         '''
         self.x = x
         self.y = self.x.copy()
-        return self.y
+        return self.y.copy()
 
     def backward(self, grad_y):
         '''
@@ -42,7 +42,7 @@ class Linear(FuncLayer):
         --------------------------------------------
         '''
         self.grad_x = grad_y.copy()
-        return self.grad_x
+        return self.grad_x.copy()
 
 
 class ReLU(FuncLayer):
@@ -60,7 +60,7 @@ class ReLU(FuncLayer):
         self.x = x
         self.y = self.x.copy()
         self.y[self.x < 0.0] = 0.0
-        return self.y
+        return self.y.copy()
 
     def backward(self, grad_y):
         '''
@@ -75,7 +75,7 @@ class ReLU(FuncLayer):
         '''
         self.grad_x = grad_y.copy()
         self.grad_x[self.x < 0.0] = 0.0
-        return self.grad_x
+        return self.grad_x.copy()
 
 
 class LeakyReLU(FuncLayer):
@@ -96,7 +96,7 @@ class LeakyReLU(FuncLayer):
                 self.y[n] = self.x[n]
             else:
                 self.y[n] = 0.1 * self.x[n]
-        return self.y
+        return self.y.copy()
 
     def backward(self, grad_y):
         '''
@@ -114,7 +114,7 @@ class LeakyReLU(FuncLayer):
                 self.grad_x[n] = grad_y[n]
             else:
                 self.grad_x[n] = 0.1 * grad_y[n]
-        return self.grad_x
+        return self.grad_x.copy()
 
 
 class Tanh(FuncLayer):
@@ -129,7 +129,7 @@ class Tanh(FuncLayer):
         '''
         self.x = x
         self.y = np.tanh(self.x)
-        return self.y
+        return self.y.copy()
 
     def backward(self, grad_y):
         '''
@@ -142,7 +142,7 @@ class Tanh(FuncLayer):
         --------------------------------------------
         '''
         self.grad_x = (1.0 - np.square(self.y)) * grad_y
-        return self.grad_x
+        return self.grad_x.copy()
 
 
 class Sigmoid(FuncLayer):
@@ -158,7 +158,7 @@ class Sigmoid(FuncLayer):
         '''
         self.x = x
         self.y = 1.0 / (1.0 + np.exp(-self.x))
-        return self.y
+        return self.y.copy()
 
     def backward(self, grad_y):
         '''
@@ -171,7 +171,7 @@ class Sigmoid(FuncLayer):
         --------------------------------------------
         '''
         self.grad_x = (self.y * (1.0 - self.y)) * grad_y
-        return self.grad_x
+        return self.grad_x.copy()
 
 
 class Softmax(FuncLayer):
@@ -198,7 +198,7 @@ class Softmax(FuncLayer):
         '''
         self.x = x
         self.y = self.softmax(self.x)
-        return self.y
+        return self.y.copy()
 
     def backward(self, grad_y):
         '''
@@ -211,5 +211,5 @@ class Softmax(FuncLayer):
         --------------------------------------------
         '''
         self.grad_x = self.y * (1.0 - self.y) * grad_y
-        return self.grad_x
+        return self.grad_x.copy()
 

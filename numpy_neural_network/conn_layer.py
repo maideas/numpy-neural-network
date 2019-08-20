@@ -30,7 +30,7 @@ class FullyConn:
         '''
         self.x[:-1] = x.copy()
         self.y = np.matmul(self.w, self.x)
-        return self.y
+        return self.y.copy()
 
     def backward(self, grad_y):
         '''
@@ -43,7 +43,7 @@ class FullyConn:
         for n in np.arange(self.size_out):
             self.grad_w[n] = self.x * grad_y[n]
             self.grad_x += self.w[n] * grad_y[n]
-        return self.grad_x[:-1]  # ... removal of bias gradient from return value
+        return self.grad_x[:-1].copy()  # ... removal of bias gradient from return value
 
     def zero_grad(self):
         '''set all gradient values to zero (preparation for incremental gradient calculation)'''
