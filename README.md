@@ -10,7 +10,7 @@ As a side effect I got a better knowledge of Python and NumPy ...
 
 ## What is a Neural Network made off ?
 
->Layers of Neurons
+>Connected Layers of Neurons
 
 These layers of neurons are coupled by weighted connections which are adjusted during the learning process in a way to minimize the prediction error of the network normally using some sort of error gradient backpropagation.
 
@@ -34,10 +34,10 @@ An easy way to build up a neural network is to define the following types of lay
   - L1 norm loss
   - Cross Entropy loss
 
-To adjust the weights *(parameters)* of the network, an optimization algorithm is needed:
+To adjust the weights of the network, an optimization algorithm is needed:
 
-- **Optimizer**
-  - Stochastic gradient descent *(with momentum)*
+- **Optimizer** *(to implement network parameter optimization)*
+  - Stochastic gradient descent
   - RMSprop
   - Adagrad
   - Adadelta
