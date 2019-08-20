@@ -3,6 +3,7 @@ import numpy as np
 
 class Optimizer:
     '''network model weights optimizer base class'''
+
     def __init__(self, model, mini_batch_size=50,
                  alpha=1e-3,
                  gamma=0.0,
@@ -25,7 +26,7 @@ class Optimizer:
         self.beta2 = beta2
 
         self.steps = 1
-        self.loss = 0.0
+        self.loss = np.zeros(self.model.loss_layer.size)
         self.init()
 
     def init(self):
@@ -70,7 +71,7 @@ class Optimizer:
         self.zero_grad()
 
         # pass mini batch data through the net ...
-        self.loss = 0.0
+        self.loss = np.zeros(self.model.loss_layer.size)
         for n in np.arange(self.mini_batch_size):
             x = x_mini_batch[n]
             target = target_mini_batch[n]
