@@ -91,10 +91,8 @@ class LeakyReLU(FuncLayer):
         --------------------------------------------
         '''
         self.x = x
-        for n in np.arange(self.size):
-            self.y = self.x.copy()
-            if self.x[n] < 0.0:
-                self.y[n] = 0.1 * self.x[n]
+        self.y = self.x.copy()
+        self.y[self.x < 0.0] *= 0.1
         return self.y
 
     def backward(self, grad_y):
@@ -108,10 +106,8 @@ class LeakyReLU(FuncLayer):
         gradient(x) = 0.1 * gradient(y)
         --------------------------------------------
         '''
-        for n in np.arange(self.size):
-            self.grad_x = grad_y.copy()
-            if self.x[n] < 0.0:
-                self.grad_x[n] = 0.1 * grad_y[n]
+        self.grad_x = grad_y.copy()
+        self.grad_x[self.x < 0.0] *= 0.1
         return self.grad_x
 
 
