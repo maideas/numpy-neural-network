@@ -1,4 +1,4 @@
-# A NumPy based Neural Network
+# A NumPy based Neural Network Implementation
 
 ## Objective
 
