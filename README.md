@@ -30,8 +30,8 @@ An easy way to build up a neural network is to define the following types of lay
   - Pooling
 
 - **Loss layer** *(to implement network error loss functions)*
-  - RMS loss *(= L2 norm loss)*
-  - L1 norm loss
+  - RMS loss *(= L2 Norm loss)*
+  - L1 Norm loss
   - Cross Entropy loss
 
 To adjust the weights *(parameters)* of the network, an optimization algorithm is needed:
