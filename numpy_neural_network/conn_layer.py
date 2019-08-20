@@ -1,8 +1,6 @@
 
 import numpy as np
 
-#===============================================================================
-
 class FullyConn:
     '''fully connected layer'''
 
@@ -62,6 +60,4 @@ class FullyConn:
         stddev = np.sqrt(2.45 / (self.size_in + self.size_out))
         self.w[:,:-1] = np.random.normal(0.0, stddev, (self.size_out, self.size_in - 1))
         self.w[:, -1] = 0.0  # ... set the bias weights to 0
-
-#===============================================================================
 

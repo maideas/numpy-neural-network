@@ -1,8 +1,6 @@
 
 import numpy as np
 
-#===============================================================================
-
 class LossLayer:
     '''loss layer base class'''
 
@@ -11,7 +9,6 @@ class LossLayer:
         self.x = np.zeros(self.size)
         self.target = np.zeros(self.size)
 
-#===============================================================================
 
 class RMSLoss(LossLayer):
     '''root mean square loss (L2 loss)'''
@@ -36,7 +33,6 @@ class RMSLoss(LossLayer):
         '''
         return self.x - self.target
 
-#===============================================================================
 
 class L1Loss(LossLayer):
     '''absolute (Manhatten) distance loss'''
@@ -67,7 +63,6 @@ class L1Loss(LossLayer):
         grad_x[(self.x - self.target) < 0.0] = -1.0
         return grad_x
 
-#===============================================================================
 
 class CrossEntropyLoss(LossLayer):
     '''distance between probabilities (negative Log-Likelihood)'''
@@ -98,6 +93,4 @@ class CrossEntropyLoss(LossLayer):
             else:
                 grad_x[n] = np.divide(-self.target[n], min_x)
         return grad_x
-
-#===============================================================================
 

@@ -1,8 +1,6 @@
 
 import numpy as np
 
-#===============================================================================
-
 class FuncLayer:
     '''function layer base class'''
 
@@ -20,7 +18,6 @@ class FuncLayer:
         '''set all gradient values to zero (preparation for incremental gradient calculation)'''
         self.grad_x = np.zeros(self.size)
 
-#===============================================================================
 
 class Linear(FuncLayer):
     '''linear activation function'''
@@ -47,7 +44,6 @@ class Linear(FuncLayer):
         self.grad_x = grad_y.copy()
         return self.grad_x
 
-#===============================================================================
 
 class ReLU(FuncLayer):
     '''rectified linear unit activation function'''
@@ -81,7 +77,6 @@ class ReLU(FuncLayer):
         self.grad_x[self.x < 0.0] = 0.0
         return self.grad_x
 
-#===============================================================================
 
 class LeakyReLU(FuncLayer):
     '''leaky rectified linear unit activation function'''
@@ -121,7 +116,6 @@ class LeakyReLU(FuncLayer):
                 self.grad_x[n] = 0.1 * grad_y[n]
         return self.grad_x
 
-#===============================================================================
 
 class Tanh(FuncLayer):
     '''tanh activation function'''
@@ -150,7 +144,6 @@ class Tanh(FuncLayer):
         self.grad_x = (1.0 - np.square(self.y)) * grad_y
         return self.grad_x
 
-#===============================================================================
 
 class Sigmoid(FuncLayer):
     '''sigmoid (logistic) activation function'''
@@ -180,7 +173,6 @@ class Sigmoid(FuncLayer):
         self.grad_x = (self.y * (1.0 - self.y)) * grad_y
         return self.grad_x
 
-#===============================================================================
 
 class Softmax(FuncLayer):
     '''softmax activation function'''
@@ -220,6 +212,4 @@ class Softmax(FuncLayer):
         '''
         self.grad_x = self.y * (1.0 - self.y) * grad_y
         return self.grad_x
-
-#===============================================================================
 

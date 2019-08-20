@@ -1,8 +1,6 @@
 
 import numpy as np
 
-#===============================================================================
-
 class Optimizer:
     '''network model weights optimizer base class'''
     def __init__(self, model, mini_batch_size=50,
@@ -103,7 +101,6 @@ class Optimizer:
 
         self.steps += 1
 
-#===============================================================================
 
 class SGD(Optimizer):
     '''stochastic gradient descent optimizer with weight momentum'''
@@ -123,7 +120,6 @@ class SGD(Optimizer):
         layer.w += (1.0 - self.beta1) * dw + self.beta1 * layer.prev_dw
         layer.prev_dw = dw
 
-#===============================================================================
 
 class RMSprop(Optimizer):
     '''Geoffrey Hinton's unpublished RMSprop optimizer'''
@@ -145,7 +141,6 @@ class RMSprop(Optimizer):
         # weight adjustment ...
         layer.w += -self.alpha * np.divide(layer.grad_w, (np.sqrt(layer.ma_grad2) + 1e-9))
 
-#===============================================================================
 
 class Adam(Optimizer):
 
@@ -171,6 +166,4 @@ class Adam(Optimizer):
 
         # weight adjustment ...
         layer.w += -self.alpha * np.divide(ma_grad1, (np.sqrt(ma_grad2) + 1e-9))
-
-#===============================================================================
 
