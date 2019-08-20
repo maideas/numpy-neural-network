@@ -34,9 +34,9 @@ An easy way to build up a neural network is to define the following types of lay
   - L1 norm loss
   - Cross Entropy loss
 
-To adjust the weights of the network, an optimization algorithm is needed:
+To adjust the weights *(parameters)* of the network, an optimization algorithm is needed:
 
-- **Optimizer** *(to implement network parameter optimization)*
+- **Optimizer**
   - Stochastic gradient descent
   - RMSprop
   - Adagrad
