@@ -197,13 +197,21 @@ class Softmax(FuncLayer):
     def backward(self, grad_y):
         '''
         activation function derivative, used to pass gradients backward
+        n : softmax layer output index
+        k : softmax layer input index
         --------------------------------------------
-        f'(x) = softmax(x) * (1.0 - softmax(x))
-              = f(x) * (1.0 - f(x))
-        gradient(x) = softmax(x) * (1.0 - softmax(x)) * gradient(y)
-                    = f(x) * (1.0 - f(x)) * gradient(y)
+        n == k : gradient of y[n] w.r.t x[k] = softmax(x[n]) * (1.0 - softmax(x[k]))
+                                             = y[n] * (1.0 - y[k])
+        --------------------------------------------
+        n != k : gradient of y[n] w.r.t x[k] = softmax(x[n]) * (0.0 - softmax(x[k]))
+                                             = y[n] * (0.0 - y[k])
         --------------------------------------------
         '''
-        self.grad_x = self.y * (1.0 - self.y) * grad_y
+        for n in np.arange(self.size):
+            for k in np.arange(self.size):
+                if n == k:
+                    self.grad_x[k] += self.y[n] * (1.0 - self.y[k]) * grad_y[n]
+                else:
+                    self.grad_x[k] += self.y[n] * (0.0 - self.y[k]) * grad_y[n]
         return self.grad_x
 
