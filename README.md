@@ -37,6 +37,7 @@ An easy way to build up a neural network is to define the following types of lay
 To adjust the weights *(parameters)* of the network, an optimization algorithm is needed:
 
 - **Optimizer**
+  - [An excellent Overview by Sebastian Ruder](http://ruder.io/optimizing-gradient-descent/)
   - Stochastic gradient descent
   - RMSprop
   - Adagrad
