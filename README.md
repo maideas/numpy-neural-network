@@ -16,11 +16,11 @@ These layers of neurons are coupled by weighted connections which are adjusted d
 
 An easy way to build up a neural network is to define the following types of layers:
 
-- **Connect layers** *(to implement sums of weighted connections)*
+- **Connect layer** *(to implement sums of weighted connections)*
   - Fully connected layer
   - Convolutional layer
 
-- **Function layers** *(to implement neuron activation functions)*
+- **Function layer** *(to implement neuron non-linear activation functions)*
   - [Linear](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Linear.ipynb?flush_cache=true)
   - [ReLU](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/ReLU.ipynb?flush_cache=true)
   - [LeakyReLU](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/LeakyReLU.ipynb?flush_cache=true)
