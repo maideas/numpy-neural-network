@@ -20,7 +20,7 @@ An easy way to build up a neural network is to define the following types of lay
   - Fully connected layer
   - Convolutional layer
 
-- **Function layer** *(to implement neuron non-linear activation functions)*
+- **Function layer** *(to implement neuron activation functions)*
   - [Linear](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Linear.ipynb?flush_cache=true)
   - [ReLU](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/ReLU.ipynb?flush_cache=true)
   - [LeakyReLU](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/LeakyReLU.ipynb?flush_cache=true)
