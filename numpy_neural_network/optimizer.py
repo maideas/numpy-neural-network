@@ -59,6 +59,9 @@ class Optimizer:
         batch_size = len(x_batch)
 
         # fix mini_batch_size if needed (for small batch sizes) ...
+        # to get a good stochastic behavior, the mini batch size
+        # shall be smaller than the complete data batch size: for
+        # this reason we limit it's size to the half batch size ...
         if self.mini_batch_size > round(batch_size / 2):
             self.mini_batch_size = round(batch_size / 2)
 
