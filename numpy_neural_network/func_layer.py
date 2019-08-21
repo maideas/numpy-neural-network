@@ -207,6 +207,7 @@ class Softmax(FuncLayer):
                                              = y[n] * (0.0 - y[k])
         --------------------------------------------
         '''
+        self.grad_x = np.zeros(self.size)
         for n in np.arange(self.size):
             for k in np.arange(self.size):
                 if n == k:
