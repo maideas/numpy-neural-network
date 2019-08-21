@@ -59,8 +59,8 @@ class Optimizer:
         batch_size = len(x_batch)
 
         # fix mini_batch_size if needed (for small batch sizes) ...
-        if self.mini_batch_size > batch_size:
-            self.mini_batch_size = batch_size
+        if self.mini_batch_size > round(batch_size / 2):
+            self.mini_batch_size = round(batch_size / 2)
 
         # sample mini_batch from given batch data ...
         idx = np.random.randint(batch_size, size=self.mini_batch_size)
