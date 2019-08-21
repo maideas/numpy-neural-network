@@ -35,8 +35,8 @@ class FullyConn:
     def backward(self, grad_y):
         '''
         gradients backward path
-        output gradients (grad_y) -> derivative w.r.t inputs -> weight gradients (grad_w)
-        output gradients (grad_y) -> derivative w.r.t weights -> input gradients (grad_x)
+        output gradients (grad_y) -> derivative w.r.t weights -> weight gradients (grad_w)
+        output gradients (grad_y) -> derivative w.r.t inputs -> input gradients (grad_x)
         returns : layer input gradients
         '''
         self.grad_x = np.zeros(self.size_in)
