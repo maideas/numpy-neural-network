@@ -4,9 +4,9 @@
 
 The softmax function is defined as:
 
-\begin{equation}
+```math
 f(x)[n] = y[n] = \frac{e^{x[n]}}{\sum_{}^{}e^{x[k]}}
-\end{equation}
+```
 
 The derivative of softmax(x)[n] with respect to x[k] has to be divided into two cases:
 
