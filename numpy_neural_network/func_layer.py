@@ -9,7 +9,6 @@ class FuncLayer:
         size : number of activation function connections (number of neurons)
         '''
         self.size = size
-        self.x = np.zeros(self.size)
         self.y = np.zeros(self.size)
         self.w = None
         self.grad_x = np.zeros(self.size)
@@ -29,8 +28,7 @@ class Linear(FuncLayer):
         f(x) = x
         --------------------------------------------
         '''
-        self.x = x
-        self.y = self.x.copy()
+        self.y = x.copy()
         return self.y
 
     def backward(self, grad_y):
@@ -57,9 +55,8 @@ class ReLU(FuncLayer):
         x < 0 : f(x) = 0
         --------------------------------------------
         '''
-        self.x = x
-        self.y = self.x.copy()
-        self.y[self.x < 0.0] = 0.0
+        self.y = x.copy()
+        self.y[x < 0.0] = 0.0
         return self.y
 
     def backward(self, grad_y):
@@ -74,7 +71,9 @@ class ReLU(FuncLayer):
         --------------------------------------------
         '''
         self.grad_x = grad_y.copy()
-        self.grad_x[self.x < 0.0] = 0.0
+        # because of the positive offset-free correlation of x and y, we can
+        # use self.y instead of x to decide to set self.grad_x elements to 0 ...
+        self.grad_x[self.y < 0.0] = 0.0
         return self.grad_x
 
 
@@ -90,9 +89,8 @@ class LeakyReLU(FuncLayer):
         x < 0 : f(x) = 0.1 * x
         --------------------------------------------
         '''
-        self.x = x
-        self.y = self.x.copy()
-        self.y[self.x < 0.0] *= 0.1
+        self.y = x.copy()
+        self.y[x < 0.0] *= 0.1
         return self.y
 
     def backward(self, grad_y):
@@ -107,7 +105,9 @@ class LeakyReLU(FuncLayer):
         --------------------------------------------
         '''
         self.grad_x = grad_y.copy()
-        self.grad_x[self.x < 0.0] *= 0.1
+        # because of the positive offset-free correlation of x and y, we can use
+        # self.y instead of x to decide to multiply self.grad_x elements by 0.1 ...
+        self.grad_x[self.y < 0.0] *= 0.1
         return self.grad_x
 
 
@@ -121,8 +121,7 @@ class Tanh(FuncLayer):
         f(x) = tanh(x)
         --------------------------------------------
         '''
-        self.x = x
-        self.y = np.tanh(self.x)
+        self.y = np.tanh(x)
         return self.y
 
     def backward(self, grad_y):
@@ -150,8 +149,7 @@ class Sigmoid(FuncLayer):
              = sigmoid(x)
         --------------------------------------------
         '''
-        self.x = x
-        self.y = 1.0 / (1.0 + np.exp(-self.x))
+        self.y = 1.0 / (1.0 + np.exp(-x))
         return self.y
 
     def backward(self, grad_y):
@@ -190,8 +188,7 @@ class Softmax(FuncLayer):
         f(x)[i] = e^x[i] / sum_over_n(e^x[n])
         --------------------------------------------
         '''
-        self.x = x
-        self.y = self.softmax(self.x)
+        self.y = self.softmax(x)
         return self.y
 
     def backward(self, grad_y):
