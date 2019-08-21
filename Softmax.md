@@ -1,14 +1,13 @@
 # The Softmax Function and it's Derivative
 
----
 >We define n as the softmax output vector index and k as the softmax input vector index.
 
----
 The softmax function is defined as:
 
-$$f(x)[n] = y[n] = \frac{e^{x[n]}}{\sum_{}^{}e^{x[k]}}$$
+\begin{equation}
+f(x)[n] = y[n] = \frac{e^{x[n]}}{\sum_{}^{}e^{x[k]}}
+\end{equation}
 
----
 The derivative of softmax(x)[n] with respect to x[k] has to be divided into two cases:
 
 >The case in which n equals k:
@@ -34,4 +33,3 @@ $$= \frac{ e^{x[n]} }{ \sum_{}^{} e^{x[k]} } * 0  - \frac{ e^{x[n]} }{ \sum_{}^{
 $$= \frac{ e^{x[n]} }{ \sum_{}^{} e^{x[k]} } * (0 - \frac{ e^{x[n]} }{ \sum_{}^{} e^{x[k]} })$$
 
 $$= y[n] * (0 - y[k])$$
-
