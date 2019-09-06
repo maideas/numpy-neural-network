@@ -70,6 +70,12 @@ class Optimizer:
         x_mini_batch = x_batch[idx]
         target_mini_batch = target_batch[idx]
 
+        # dummy forward pass through all layers to initialize
+        # layer tensor shapes before zero_grad() call ...
+        x = x_mini_batch[0]
+        for layer in self.model.layers:
+            x = layer.forward(x)
+
         # initialize gradients to zero ...
         self.zero_grad()
 
@@ -109,17 +115,14 @@ class Optimizer:
 class SGD(Optimizer):
     '''stochastic gradient descent optimizer with weight momentum'''
 
-    def init(self):
-        '''implements optimizer dependent initialization things'''
-        for layer in self.model.layers:
-            if layer.w is not None:
-                layer.prev_dw = np.zeros((layer.size_out, layer.size_in))
-
     def update_weights(self, layer):
         '''
         implements the optimizer dependent layer weight update algorithm
         layer : network model layer to be adapted
         '''
+        if layer.prev_dw is None:
+            layer.prev_dw = np.zeros(layer.w.shape)
+
         dw = -self.alpha * layer.grad_w
         layer.w += (1.0 - self.beta1) * dw + self.beta1 * layer.prev_dw
         layer.prev_dw = dw
@@ -128,17 +131,14 @@ class SGD(Optimizer):
 class RMSprop(Optimizer):
     '''Geoffrey Hinton's unpublished RMSprop optimizer'''
 
-    def init(self):
-        '''implements optimizer dependent initialization things'''
-        for layer in self.model.layers:
-            if layer.w is not None:
-                layer.ma_grad2 = np.zeros((layer.size_out, layer.size_in))
-
     def update_weights(self, layer):
         '''
         implements the optimizer dependent layer weight update algorithm
         layer : network model layer to be adapted
         '''
+        if layer.ma_grad2 is None:
+            layer.ma_grad2 = np.zeros(layer.w.shape)
+
         # squared gradient moving average ...
         layer.ma_grad2 = self.beta2 * layer.ma_grad2 + (1.0 - self.beta2) * np.square(layer.grad_w)
 
@@ -148,18 +148,15 @@ class RMSprop(Optimizer):
 
 class Adam(Optimizer):
 
-    def init(self):
-        '''implements optimizer dependent initialization things'''
-        for layer in self.model.layers:
-            if layer.w is not None:
-                layer.ma_grad1 = np.zeros((layer.size_out, layer.size_in))
-                layer.ma_grad2 = np.zeros((layer.size_out, layer.size_in))
-
     def update_weights(self, layer):
         '''
         implements the optimizer dependent layer weight update algorithm
         layer : network model layer to be adapted
         '''
+        if layer.ma_grad1 is None:
+            layer.ma_grad1 = np.zeros(layer.w.shape)
+            layer.ma_grad2 = np.zeros(layer.w.shape)
+
         # normal and squared gradient moving average ...
         layer.ma_grad1 = self.beta1 * layer.ma_grad1 + (1.0 - self.beta1) *           layer.grad_w
         layer.ma_grad2 = self.beta2 * layer.ma_grad2 + (1.0 - self.beta2) * np.square(layer.grad_w)
