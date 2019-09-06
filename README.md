@@ -19,15 +19,15 @@ An easy way to build up a neural network is to define the following types of lay
 - **Connect layer** *(to implement sums of weighted connections)*
   - Fully connected layer
   - Convolutional layer
+  - MaxPooling layer
 
 - **Function layer** *(to implement neuron activation functions)*
-  - [Linear](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Linear.ipynb?flush_cache=true)
-  - [ReLU](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/ReLU.ipynb?flush_cache=true)
-  - [LeakyReLU](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/LeakyReLU.ipynb?flush_cache=true)
-  - [Tanh](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Tanh.ipynb?flush_cache=true)
-  - [Sigmoid](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Sigmoid.ipynb?flush_cache=true)
-  - [Softmax](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Softmax.ipynb?flush_cache=true)
-  - Pooling
+  - [Linear](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Linear.ipynb)
+  - [ReLU](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/ReLU.ipynb)
+  - [LeakyReLU](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/LeakyReLU.ipynb)
+  - [Tanh](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Tanh.ipynb)
+  - [Sigmoid](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Sigmoid.ipynb)
+  - [Softmax](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Softmax.ipynb)
 
 - **Loss layer** *(to implement network error loss functions)*
   - RMS loss *(= L2 Norm loss)*
