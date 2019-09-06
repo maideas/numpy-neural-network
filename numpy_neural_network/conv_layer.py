@@ -78,16 +78,17 @@ class Conv2d:
         self.y = np.full((self.channels_out, self.steps1, self.steps2), np.nan)
 
         for group in np.arange(self.groups):
-            for co in np.arange(self.channels_out_per_group):
-                for s1 in np.arange(self.steps1):
-                    for s2 in np.arange(self.steps2):
+            for s1 in np.arange(self.steps1):
+                for s2 in np.arange(self.steps2):
 
-                        # get the current 3D slice out of input data x ...
-                        self.kernel_x[:-1] = self.x[
-                            group * self.channels_in_per_group : (group + 1) * self.channels_in_per_group,
-                            s1 * self.stride : s1 * self.stride + self.kernel_size,
-                            s2 * self.stride : s2 * self.stride + self.kernel_size
-                        ].ravel()
+                    # get the current 3D slice out of input data x ...
+                    self.kernel_x[:-1] = self.x[
+                        group * self.channels_in_per_group : (group + 1) * self.channels_in_per_group,
+                        s1 * self.stride : s1 * self.stride + self.kernel_size,
+                        s2 * self.stride : s2 * self.stride + self.kernel_size
+                    ].ravel()
+
+                    for co in np.arange(self.channels_out_per_group):
 
                         # set single output channel value to weighted slice data sum ...
                         self.y[group * self.channels_out_per_group + co, s1, s2] = np.sum(self.w[group, co] * self.kernel_x)
@@ -112,16 +113,17 @@ class Conv2d:
             "to be equal to layer internal steps2 ({0}) value !".format(self.steps2)
 
         for group in np.arange(self.groups):
-            for co in np.arange(self.channels_out_per_group):
-                for s1 in np.arange(self.steps1):
-                    for s2 in np.arange(self.steps2):
+            for s1 in np.arange(self.steps1):
+                for s2 in np.arange(self.steps2):
 
-                        # get the current 3D slice out of input data x ...
-                        self.kernel_x[:-1] = self.x[
-                            group * self.channels_in_per_group : (group + 1) * self.channels_in_per_group,
-                            s1 * self.stride : s1 * self.stride + self.kernel_size,
-                            s2 * self.stride : s2 * self.stride + self.kernel_size
-                        ].ravel()
+                    # get the current 3D slice out of input data x ...
+                    self.kernel_x[:-1] = self.x[
+                        group * self.channels_in_per_group : (group + 1) * self.channels_in_per_group,
+                        s1 * self.stride : s1 * self.stride + self.kernel_size,
+                        s2 * self.stride : s2 * self.stride + self.kernel_size
+                    ].ravel()
+
+                    for co in np.arange(self.channels_out_per_group):
 
                         # slice related single (scalar) output (y) gradient value ...
                         single_grad_y = grad_y[group * self.channels_out_per_group + co, s1, s2]
