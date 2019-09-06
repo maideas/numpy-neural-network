@@ -76,6 +76,7 @@ class Conv2d:
 
         self.x = x.copy()
         self.y = np.full((self.channels_out, self.steps1, self.steps2), np.nan)
+        y = np.full((self.channels_out, self.steps1, self.steps2), np.nan)
 
         for group in np.arange(self.groups):
             for s1 in np.arange(self.steps1):
@@ -88,10 +89,11 @@ class Conv2d:
                         s2 * self.stride : s2 * self.stride + self.kernel_size
                     ].ravel()
 
-                    for co in np.arange(self.channels_out_per_group):
-
-                        # set single output channel value to weighted slice data sum ...
-                        self.y[group * self.channels_out_per_group + co, s1, s2] = np.sum(self.w[group, co] * self.kernel_x)
+                    # set output channel values to weighted slice data sums ...
+                    self.y[
+                        group * self.channels_out_per_group :
+                        (group + 1) * self.channels_out_per_group, s1, s2
+                    ] = np.matmul(self.w[group], self.kernel_x)
 
         return self.y
 
