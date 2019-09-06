@@ -8,8 +8,8 @@ class FullyConn:
         self.size_in = size_in + 1  # plus bias node
         self.size_out = size_out
 
+        self.x_shape = (self.size_in,)
         self.x = np.zeros(self.size_in)
-        self.x[-1] = 1.0  # last vector element will be used as bias node of value 1
         self.y = np.zeros(self.size_out)
         self.grad_x = np.zeros(self.size_in)  # layer input gradients
         self.w = np.zeros((self.size_out, self.size_in))
@@ -28,7 +28,9 @@ class FullyConn:
         input data -> weighted sums -> output data
         returns : layer output data
         '''
-        self.x[:-1] = x.copy()
+        self.x_shape = x.shape
+        # last vector element will be used as bias node of value 1 ...
+        self.x = np.concatenate((x.copy().ravel(), [1.0]), axis=0)
         self.y = np.matmul(self.w, self.x)
         return self.y
 
@@ -43,7 +45,8 @@ class FullyConn:
         for n in np.arange(self.size_out):
             self.grad_w[n] = self.x * grad_y[n]
             self.grad_x += self.w[n] * grad_y[n]
-        return self.grad_x[:-1]  # ... removal of bias gradient from return value
+        # removal of bias gradient from return value and shape like x value ...
+        return self.grad_x[:-1].reshape(self.x_shape)
 
     def zero_grad(self):
         '''set all gradient values to zero (preparation for incremental gradient calculation)'''
