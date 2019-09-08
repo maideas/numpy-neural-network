@@ -119,7 +119,7 @@ y_batch = class_vector_to_onehot_array(y_class_batch)
 ################################################################################
 # shuffle data items ...
 
-idx = np.random.randint(y_batch.shape[0], size=y_batch.shape[0])
+idx = np.random.permutation(y_batch.shape[0])
 
 x_batch = x_batch[idx]
 y_batch = y_batch[idx]
