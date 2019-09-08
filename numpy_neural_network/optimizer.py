@@ -70,12 +70,6 @@ class Optimizer:
         x_mini_batch = x_batch[idx]
         target_mini_batch = target_batch[idx]
 
-        # dummy forward pass through all layers to initialize
-        # layer tensor shapes before zero_grad() call ...
-        x = x_mini_batch[0]
-        for layer in self.model.layers:
-            x = layer.forward(x)
-
         # initialize gradients to zero ...
         self.zero_grad()
 

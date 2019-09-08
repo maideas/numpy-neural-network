@@ -4,23 +4,20 @@ import numpy as np
 class Conv2d:
     '''2D convolutional layer'''
 
-    def __init__(self, channels_in, channels_out, kernel_size, stride=1, groups=1):
-        self.channels_in = channels_in
-        self.channels_out = channels_out  # = number of kernels
-
+    def __init__(self, shape_in, shape_out, kernel_size, stride=1, groups=1):
+        self.shape_in = shape_in
+        self.shape_out = shape_out  # shape_out[0] = number of layer kernels
         self.kernel_size = kernel_size
         self.stride = stride
         self.groups = groups
 
-        assert self.channels_in % self.groups == 0, \
-            "Conv2d: layer channels_in ({0}) has ".format(self.channels_in) + \
-            "to be a multiple of groups ({0}) !".format(self.groups)
-        assert self.channels_out % self.groups == 0, \
-            "Conv2d: layer channels_out ({0}) has ".format(self.channels_out) + \
-            "to be a multiple of groups ({0}) !".format(self.groups)
+        self.channels_in_per_group = int(np.trunc(self.shape_in[0] / self.groups))
+        self.channels_out_per_group = int(np.trunc(self.shape_out[0] / self.groups))
 
-        self.channels_in_per_group = int(np.trunc(self.channels_in / self.groups))
-        self.channels_out_per_group = int(np.trunc(self.channels_out / self.groups))
+        self.steps1 = 1 + int(np.trunc((self.shape_in[1] - self.kernel_size) / self.stride))
+        self.steps2 = 1 + int(np.trunc((self.shape_in[2] - self.kernel_size) / self.stride))
+
+        self.check()
 
         self.kernel_size_in = (
             self.kernel_size * self.kernel_size * self.channels_in_per_group
@@ -32,11 +29,9 @@ class Conv2d:
         self.w = np.zeros((self.groups, self.channels_out_per_group, self.kernel_size_in))
         self.grad_w = np.zeros(self.w.shape)  # layer weight adjustment gradients
 
-        self.x = None  # conv layer input data of depth self.channels_in
-        self.y = None  # conv layer output data of depth self.channels_out
-        self.grad_x = None  # layer input gradients
-        self.steps1 = 0
-        self.steps2 = 0
+        self.x = np.zeros(self.shape_in)  # layer input data
+        self.y = np.zeros(self.shape_out)  # layer output data
+        self.grad_x = np.zeros(self.shape_in)  # layer input gradients
 
         # optimizer dependent values (will be initialized by the selected optimizer) ...
         self.prev_dw = None
@@ -51,32 +46,12 @@ class Conv2d:
         input data -> weighted sums -> output data
         returns : layer output data
         '''
-        assert x.shape[0] == self.channels_in, \
-            "Conv2d: forward() data shape[0] ({0}) has ".format(x.shape[0]) + \
-            "to be equal to layer channels_in ({0}) !".format(self.channels_in)
-
-        assert x.shape[1] >= self.kernel_size, \
-            "Conv2d: forward() data shape[1] ({0}) has ".format(x.shape[1]) + \
-            "to be equal or larger than kernel_size ({0}) !".format(self.kernel_size)
-        assert x.shape[2] >= self.kernel_size, \
-            "Conv2d: forward() data shape[2] ({0}) has ".format(x.shape[2]) + \
-            "to be equal or larger than kernel_size ({0}) !".format(self.kernel_size)
-
-        assert (x.shape[1] - self.kernel_size) % self.stride == 0, \
-            "Conv2d: forward() data shape[1] ({0}) ".format(x.shape[1]) + \
-            "minus kernel_size ({0}) has ".format(self.kernel_size) + \
-            "to be a multiple of stride ({0}) !".format(self.stride)
-        assert (x.shape[2] - self.kernel_size) % self.stride == 0, \
-            "Conv2d: forward() data shape[2] ({0}) ".format(x.shape[2]) + \
-            "minus kernel_size ({0}) has ".format(self.kernel_size) + \
-            "to be a multiple of stride ({0}) !".format(self.stride)
-
-        self.steps1 = 1 + int(np.trunc((x.shape[1] - self.kernel_size) / self.stride))
-        self.steps2 = 1 + int(np.trunc((x.shape[2] - self.kernel_size) / self.stride))
+        assert x.shape == self.shape_in, \
+            "Conv2d: forward() data shape ({0}) has ".format(x.shape) + \
+            "to be equal to layer shape_in ({0}) !".format(self.shape_in)
 
         self.x = x.copy()
-        self.y = np.full((self.channels_out, self.steps1, self.steps2), np.nan)
-        y = np.full((self.channels_out, self.steps1, self.steps2), np.nan)
+        self.y = np.full(self.shape_out, np.nan)
 
         for group in np.arange(self.groups):
             for s1 in np.arange(self.steps1):
@@ -104,15 +79,9 @@ class Conv2d:
         output gradients (grad_y) -> derivative w.r.t inputs -> input gradients (grad_x)
         returns : layer input gradients
         '''
-        assert grad_y.shape[0] == self.channels_out, \
-            "Conv2d: backward() gradient shape[0] ({0}) has ".format(grad_y.shape[0]) + \
-            "to be equal to layer channels_out ({0}) !".format(self.channels_out)
-        assert grad_y.shape[1] == self.steps1, \
-            "Conv2d: backward() gradient shape[1] ({0}) has ".format(grad_y.shape[1]) + \
-            "to be equal to layer internal steps1 ({0}) value !".format(self.steps1)
-        assert grad_y.shape[2] == self.steps2, \
-            "Conv2d: backward() gradient shape[2] ({0}) has ".format(grad_y.shape[2]) + \
-            "to be equal to layer internal steps2 ({0}) value !".format(self.steps2)
+        assert grad_y.shape == self.shape_out, \
+            "Conv2d: backward() gradient shape ({0}) has ".format(grad_y.shape) + \
+            "to be equal to layer shape_out ({0}) !".format(self.shape_out)
 
         for group in np.arange(self.groups):
             for s1 in np.arange(self.steps1):
@@ -148,8 +117,8 @@ class Conv2d:
 
     def zero_grad(self):
         '''set all gradient values to zero (preparation for incremental gradient calculation)'''
-        self.grad_x = np.zeros(self.x.shape)
-        self.grad_w = np.zeros(self.w.shape)
+        self.grad_x = np.zeros(self.grad_x.shape)
+        self.grad_w = np.zeros(self.grad_w.shape)
 
     def init_w(self):
         '''
@@ -163,4 +132,37 @@ class Conv2d:
                 0.0, stddev, (self.channels_out_per_group, self.kernel_size_in - 1)
             )
             self.w[group][:, -1] = 0.0  # ... set the bias weights to 0
+
+    def check(self):
+        '''check layer configuration consistency'''
+
+        assert self.shape_in[0] % self.groups == 0, \
+            "Conv2d: layer shape_in[0] ({0}) has ".format(self.shape_in[0]) + \
+            "to be a multiple of groups ({0}) !".format(self.groups)
+        assert self.shape_out[0] % self.groups == 0, \
+            "Conv2d: layer shape_out[0] ({0}) has ".format(self.shape_out[0]) + \
+            "to be a multiple of groups ({0}) !".format(self.groups)
+
+        assert self.shape_in[1] >= self.kernel_size, \
+            "Conv2d: layer shape_in[1] ({0}) has ".format(self.shape_in[1]) + \
+            "to be equal or larger than kernel_size ({0}) !".format(self.kernel_size)
+        assert self.shape_in[2] >= self.kernel_size, \
+            "Conv2d: layer shape_in[2] ({0}) has ".format(self.shape_in[2]) + \
+            "to be equal or larger than kernel_size ({0}) !".format(self.kernel_size)
+
+        assert (self.shape_in[1] - self.kernel_size) % self.stride == 0, \
+            "Conv2d: layer shape_in[1] ({0}) ".format(self.shape_in[1]) + \
+            "minus kernel_size ({0}) has ".format(self.kernel_size) + \
+            "to be a multiple of stride ({0}) !".format(self.stride)
+        assert (self.shape_in[2] - self.kernel_size) % self.stride == 0, \
+            "Conv2d: layer shape_in[2] ({0}) ".format(self.shape_in[2]) + \
+            "minus kernel_size ({0}) has ".format(self.kernel_size) + \
+            "to be a multiple of stride ({0}) !".format(self.stride)
+
+        assert self.shape_out[1] == self.steps1, \
+            "Conv2d: layer shape_out[1] ({0}) has ".format(self.shape_out[1]) + \
+            "to be equal to layer internal steps1 ({0}) !".format(self.steps1)
+        assert self.shape_out[2] == self.steps2, \
+            "Conv2d: layer shape_out[2] ({0}) has ".format(self.shape_out[2]) + \
+            "to be equal to layer internal steps2 ({0}) !".format(self.steps2)
 

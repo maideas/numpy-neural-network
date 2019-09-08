@@ -25,10 +25,10 @@ def class_vector_to_onehot_array(y_classes):
 # the neural network model ...
 
 model = npnn.network.Model([
-    npnn.Conv2d(channels_in=1, channels_out=3, kernel_size=5, stride=1),
+    npnn.Conv2d(shape_in=(1, 10, 10), shape_out=(3, 6, 6), kernel_size=5, stride=1),
     npnn.LeakyReLU(3*6*6),
-    npnn.MaxPool(channels=3, kernel_size=2),
-    npnn.Conv2d(channels_in=3, channels_out=4, kernel_size=3, stride=1),
+    npnn.MaxPool(shape_in=(3, 6, 6), shape_out=(3, 3, 3), kernel_size=2),
+    npnn.Conv2d(shape_in=(3, 3, 3), shape_out=(4, 1, 1), kernel_size=3, stride=1),
     npnn.LeakyReLU(4*1*1),
     npnn.FullyConn(4, 4),
     npnn.Softmax(4)
