@@ -66,8 +66,9 @@ class Conv2d:
 
                     # set output channel values to weighted slice data sums ...
                     self.y[
-                        group * self.channels_out_per_group :
-                        (group + 1) * self.channels_out_per_group, s1, s2
+                        group * self.channels_out_per_group : (group + 1) * self.channels_out_per_group,
+                        s1,
+                        s2
                     ] = np.matmul(self.w[group], self.kernel_x)
 
         return self.y
