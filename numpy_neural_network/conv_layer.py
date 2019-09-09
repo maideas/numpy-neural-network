@@ -124,10 +124,13 @@ class Conv2d:
     def init_w(self):
         '''
         mean = 0
-        variance = 2.0 / (kernel input size)
+        variance = 2.0 / ((kernel size / stride)^2 * channels in + (kernel size)^2 * channels out)
         bias weights = 0
         '''
-        stddev = np.sqrt(2.0 / self.kernel_size_in)
+        stddev = np.sqrt(2.0 / (
+            np.square(self.kernel_size) * self.channels_in_per_group +
+            np.square(self.kernel_size / self.stride) * self.channels_out_per_group
+        ))
         for group in np.arange(self.groups):
             self.w[group][:,:-1] = np.random.normal(
                 0.0, stddev, (self.channels_out_per_group, self.kernel_size_in - 1)
