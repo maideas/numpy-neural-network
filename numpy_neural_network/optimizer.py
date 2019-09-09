@@ -62,8 +62,8 @@ class Optimizer:
         # to get a good stochastic behavior, the mini batch size
         # shall be smaller than the complete data batch size: for
         # this reason we limit it's size to the half batch size ...
-        if self.mini_batch_size > round(batch_size / 2):
-            self.mini_batch_size = round(batch_size / 2)
+        if self.mini_batch_size > int(np.trunc(np.sqrt(batch_size))):
+            self.mini_batch_size = int(np.trunc(np.sqrt(batch_size)))
 
         # sample mini_batch from given batch data ...
         idx = np.random.randint(batch_size, size=self.mini_batch_size)
