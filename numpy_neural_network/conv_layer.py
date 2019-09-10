@@ -40,6 +40,26 @@ class Conv2d:
 
         self.init_w()
 
+        self.x_indices = []
+        self.y_indices = []
+        self.w_indices = []
+        for group in np.arange(self.groups):
+            for sh in np.arange(self.steps_h):
+                for sw in np.arange(self.steps_w):
+                    self.x_indices.append((
+                        slice(sh * self.stride, sh * self.stride + self.kernel_size),
+                        slice(sw * self.stride, sw * self.stride + self.kernel_size),
+                        slice(group * self.channels_in_per_group, (group + 1) * self.channels_in_per_group)
+                    ))
+                    self.y_indices.append((
+                        sh,
+                        sw,
+                        slice(group * self.channels_out_per_group, (group + 1) * self.channels_out_per_group)
+                    ))
+                    self.w_indices.append((
+                        group
+                    ))
+                    
     def forward(self, x):
         '''
         data forward path
@@ -53,23 +73,13 @@ class Conv2d:
         self.x = x.copy()
         self.y = np.full(self.shape_out, np.nan)
 
-        for group in np.arange(self.groups):
-            for sh in np.arange(self.steps_h):
-                for sw in np.arange(self.steps_w):
+        for x_index, y_index, w_index in zip(self.x_indices, self.y_indices, self.w_indices):
 
-                    # get the current 3D slice out of input data x ...
-                    self.kernel_x[:-1] = self.x[
-                        sh * self.stride : sh * self.stride + self.kernel_size,
-                        sw * self.stride : sw * self.stride + self.kernel_size,
-                        group * self.channels_in_per_group : (group + 1) * self.channels_in_per_group
-                    ].ravel()
+            # get the current 3D slice out of input data x ...
+            self.kernel_x[:-1] = self.x[x_index].ravel()
 
-                    # set output channel values to weighted slice data sums ...
-                    self.y[
-                        sh,
-                        sw,
-                        group * self.channels_out_per_group : (group + 1) * self.channels_out_per_group
-                    ] = np.matmul(self.w[group], self.kernel_x)
+            # set output channel values to weighted slice data sums ...
+            self.y[y_index] = np.matmul(self.w[w_index], self.kernel_x)
 
         return self.y
 
@@ -84,35 +94,25 @@ class Conv2d:
             "Conv2d: backward() gradient shape ({0}) has ".format(grad_y.shape) + \
             "to be equal to layer shape_out ({0}) !".format(self.shape_out)
 
-        for group in np.arange(self.groups):
-            for sh in np.arange(self.steps_h):
-                for sw in np.arange(self.steps_w):
+        for x_index, y_index, w_index in zip(self.x_indices, self.y_indices, self.w_indices):
 
-                    # get the current 3D slice out of input data x ...
-                    self.kernel_x[:-1] = self.x[
-                        sh * self.stride : sh * self.stride + self.kernel_size,
-                        sw * self.stride : sw * self.stride + self.kernel_size,
-                        group * self.channels_in_per_group : (group + 1) * self.channels_in_per_group
-                    ].ravel()
+            # get the current 3D slice out of input data x ...
+            self.kernel_x[:-1] = self.x[x_index].ravel()
 
-                    for co in np.arange(self.channels_out_per_group):
+            for co in np.arange(self.channels_out_per_group):
 
-                        # slice related single (scalar) output (y) gradient value ...
-                        single_grad_y = grad_y[sh, sw, group * self.channels_out_per_group + co]
+                # slice related single (scalar) output (y) gradient value ...
+                single_grad_y = grad_y[y_index][co]
 
-                        # weight (w) gradients calculation ...
-                        self.grad_w[group, co] += self.kernel_x * single_grad_y
+                # weight (w) gradients calculation ...
+                self.grad_w[w_index, co] += self.kernel_x * single_grad_y
 
-                        # input (x) gradients calculation ...
-                        self.grad_x[
-                            sh * self.stride : sh * self.stride + self.kernel_size,
-                            sw * self.stride : sw * self.stride + self.kernel_size,
-                            group * self.channels_in_per_group : (group + 1) * self.channels_in_per_group
-                        ] += (self.w[group, co] * single_grad_y)[:-1].reshape(
-                            self.kernel_size,
-                            self.kernel_size,
-                            self.channels_in_per_group
-                        )
+                # input (x) gradients calculation ...
+                self.grad_x[x_index] += (self.w[w_index, co] * single_grad_y)[:-1].reshape(
+                    self.kernel_size,
+                    self.kernel_size,
+                    self.channels_in_per_group
+                )
 
         return self.grad_x
 

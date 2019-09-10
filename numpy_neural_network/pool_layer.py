@@ -19,6 +19,22 @@ class MaxPool:
 
         self.check()
 
+        self.x_indices = []
+        self.y_indices = []
+        for ch in np.arange(self.shape_in[2]):
+            for sh in np.arange(self.steps_h):
+                for sw in np.arange(self.steps_w):
+                    self.x_indices.append((
+                        slice(sh * self.kernel_size, sh * self.kernel_size + self.kernel_size),
+                        slice(sw * self.kernel_size, sw * self.kernel_size + self.kernel_size),
+                        ch
+                    ))
+                    self.y_indices.append((
+                        sh,
+                        sw,
+                        ch
+                    ))
+
     def forward(self, x):
         '''
         data forward path
@@ -31,18 +47,11 @@ class MaxPool:
         self.x = x.copy()
         self.y = np.full(self.shape_out, np.nan)
 
-        for ch in np.arange(self.shape_in[2]):
-            for sh in np.arange(self.steps_h):
-                for sw in np.arange(self.steps_w):
+        for x_index, y_index in zip(self.x_indices, self.y_indices):
+            kernel_x = self.x[x_index]
 
-                    kernel_x = self.x[
-                        sh * self.kernel_size : sh * self.kernel_size + self.kernel_size,
-                        sw * self.kernel_size : sw * self.kernel_size + self.kernel_size,
-                        ch
-                    ]
-
-                    # set single output channel value to maximum input slice data value ...
-                    self.y[sh, sw, ch] = np.amax(kernel_x)
+            # set single output channel value to maximum input slice data value ...
+            self.y[y_index] = np.amax(kernel_x)
 
         return self.y
 
@@ -55,26 +64,15 @@ class MaxPool:
             "MaxPool: backward() gradient shape ({0}) has ".format(grad_y.shape) + \
             "to be equal to layer shape_out ({0}) !".format(self.shape_out)
 
-        for ch in np.arange(self.shape_in[2]):
-            for sh in np.arange(self.steps_h):
-                for sw in np.arange(self.steps_w):
+        for x_index, y_index in zip(self.x_indices, self.y_indices):
+            kernel_x = self.x[x_index]
 
-                    kernel_x = self.x[
-                        sh * self.kernel_size : sh * self.kernel_size + self.kernel_size,
-                        sw * self.kernel_size : sw * self.kernel_size + self.kernel_size,
-                        ch
-                    ]
+            # get 2D index of max value inside current kernel x data ...
+            idx = np.unravel_index(np.argmax(kernel_x), kernel_x.shape)
 
-                    # get 2D index of max value inside current kernel x data ...
-                    idx = np.unravel_index(np.argmax(kernel_x), kernel_x.shape)
-
-                    # set max x value kernel area position to related y gradient value ...
-                    # (all other gradient values inside kernel area are kept 0)
-                    self.grad_x[
-                        sh * self.kernel_size + idx[0],
-                        sw * self.kernel_size + idx[1],
-                        ch
-                    ] = grad_y[sh, sw, ch]
+            # set max x value kernel area position to related y gradient value ...
+            # (all other gradient values inside kernel area are kept 0)
+            self.grad_x[x_index][idx] = grad_y[y_index]
 
         return self.grad_x
 
