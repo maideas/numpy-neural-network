@@ -23,9 +23,6 @@ class Conv2d:
             self.kernel_size * self.kernel_size * self.channels_in_per_group
         ) + 1  # plus bias node
 
-        self.kernel_x = np.zeros(self.kernel_size_in)
-        self.kernel_x[-1] = 1.0  # last vector element will be used as bias node of value 1
-
         self.w = np.zeros((self.groups, self.channels_out_per_group, self.kernel_size_in))
         self.grad_w = np.zeros(self.w.shape)  # layer weight adjustment gradients
 
@@ -59,7 +56,7 @@ class Conv2d:
                     self.w_indices.append((
                         group
                     ))
-                    
+
     def forward(self, x):
         '''
         data forward path
@@ -76,10 +73,11 @@ class Conv2d:
         for x_index, y_index, w_index in zip(self.x_indices, self.y_indices, self.w_indices):
 
             # get the current 3D slice out of input data x ...
-            self.kernel_x[:-1] = self.x[x_index].ravel()
+            # last vector element will be used as bias node of value 1
+            kernel_x = np.concatenate((self.x[x_index].ravel(), [1.0]), axis=0)
 
             # set output channel values to weighted slice data sums ...
-            self.y[y_index] = np.matmul(self.w[w_index], self.kernel_x)
+            self.y[y_index] = np.matmul(self.w[w_index], kernel_x)
 
         return self.y
 
@@ -97,22 +95,18 @@ class Conv2d:
         for x_index, y_index, w_index in zip(self.x_indices, self.y_indices, self.w_indices):
 
             # get the current 3D slice out of input data x ...
-            self.kernel_x[:-1] = self.x[x_index].ravel()
+            # last vector element will be used as bias node of value 1
+            kernel_x = np.concatenate((self.x[x_index].ravel(), [1.0]), axis=0)
 
-            for co in np.arange(self.channels_out_per_group):
+            # weight (w) gradients calculation ...
+            self.grad_w[w_index] += np.outer(grad_y[y_index], kernel_x)
 
-                # slice related single (scalar) output (y) gradient value ...
-                single_grad_y = grad_y[y_index][co]
-
-                # weight (w) gradients calculation ...
-                self.grad_w[w_index, co] += self.kernel_x * single_grad_y
-
-                # input (x) gradients calculation ...
-                self.grad_x[x_index] += (self.w[w_index, co] * single_grad_y)[:-1].reshape(
-                    self.kernel_size,
-                    self.kernel_size,
-                    self.channels_in_per_group
-                )
+            # input (x) gradients calculation ...
+            self.grad_x[x_index] += np.matmul(grad_y[y_index], self.w[w_index])[:-1].reshape(
+                self.kernel_size,
+                self.kernel_size,
+                self.channels_in_per_group
+            )
 
         return self.grad_x
 
