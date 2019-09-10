@@ -48,6 +48,7 @@ class MaxPool:
         self.y = np.full(self.shape_out, np.nan)
 
         for x_index, y_index in zip(self.x_indices, self.y_indices):
+
             kernel_x = self.x[x_index]
 
             # set single output channel value to maximum input slice data value ...
@@ -65,6 +66,7 @@ class MaxPool:
             "to be equal to layer shape_out ({0}) !".format(self.shape_out)
 
         for x_index, y_index in zip(self.x_indices, self.y_indices):
+
             kernel_x = self.x[x_index]
 
             # get 2D index of max value inside current kernel x data ...
