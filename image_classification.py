@@ -25,12 +25,12 @@ def class_vector_to_onehot_array(y_classes):
 # the neural network model ...
 
 model = npnn.network.Model([
-    npnn.Conv2d(shape_in=(1, 10, 10), shape_out=(4, 8, 8), kernel_size=3, stride=1),
-    npnn.LeakyReLU(4*8*8),
-    npnn.MaxPool(shape_in=(4, 8, 8), shape_out=(4, 4, 4), kernel_size=2),
-    npnn.Conv2d(shape_in=(4, 4, 4), shape_out=(4, 2, 2), kernel_size=3, stride=1),
-    npnn.LeakyReLU(4*2*2),
-    npnn.MaxPool(shape_in=(4, 2, 2), shape_out=(4, 1, 1), kernel_size=2),
+    npnn.Conv2d(shape_in=(10, 10, 1), shape_out=(8, 8, 4), kernel_size=3, stride=1),
+    npnn.LeakyReLU(8*8*4),
+    npnn.MaxPool(shape_in=(8, 8, 4), shape_out=(4, 4, 4), kernel_size=2),
+    npnn.Conv2d(shape_in=(4, 4, 4), shape_out=(2, 2, 4), kernel_size=3, stride=1),
+    npnn.LeakyReLU(2*2*4),
+    npnn.MaxPool(shape_in=(2, 2, 4), shape_out=(1, 1, 4), kernel_size=2),
     npnn.FullyConn(4, 4),
     npnn.Softmax(4)
 ])
@@ -41,7 +41,7 @@ optimizer = npnn.optimizer.Adam(model, alpha=1e-2)
 ################################################################################
 # the data and it's preparation ...
 
-x_batch = np.zeros(((8*8*4), 1, 10, 10))
+x_batch = np.zeros(((8*8*4), 10, 10, 1))
 y_class_batch = np.zeros(8*8*4)
 
 k = 0
@@ -51,15 +51,15 @@ k = 0
 # 1 1 0
 for n in np.arange(8):
     for m in np.arange(8):
-        x_batch[k, 0, n+0, m+0] = 0
-        x_batch[k, 0, n+1, m+0] = 1
-        x_batch[k, 0, n+2, m+0] = 1
-        x_batch[k, 0, n+0, m+1] = 1
-        x_batch[k, 0, n+1, m+1] = 0
-        x_batch[k, 0, n+2, m+1] = 1
-        x_batch[k, 0, n+0, m+2] = 1
-        x_batch[k, 0, n+1, m+2] = 1
-        x_batch[k, 0, n+2, m+2] = 0
+        x_batch[k, n+0, m+0, 0] = 0
+        x_batch[k, n+1, m+0, 0] = 1
+        x_batch[k, n+2, m+0, 0] = 1
+        x_batch[k, n+0, m+1, 0] = 1
+        x_batch[k, n+1, m+1, 0] = 0
+        x_batch[k, n+2, m+1, 0] = 1
+        x_batch[k, n+0, m+2, 0] = 1
+        x_batch[k, n+1, m+2, 0] = 1
+        x_batch[k, n+2, m+2, 0] = 0
         y_class_batch[k] = 0
         k += 1
 
@@ -68,15 +68,15 @@ for n in np.arange(8):
 # 0 1 0
 for n in np.arange(8):
     for m in np.arange(8):
-        x_batch[k, 0, n+0, m+0] = 0
-        x_batch[k, 0, n+1, m+0] = 1
-        x_batch[k, 0, n+2, m+0] = 0
-        x_batch[k, 0, n+0, m+1] = 1
-        x_batch[k, 0, n+1, m+1] = 1
-        x_batch[k, 0, n+2, m+1] = 1
-        x_batch[k, 0, n+0, m+2] = 0
-        x_batch[k, 0, n+1, m+2] = 1
-        x_batch[k, 0, n+2, m+2] = 0
+        x_batch[k, n+0, m+0, 0] = 0
+        x_batch[k, n+1, m+0, 0] = 1
+        x_batch[k, n+2, m+0, 0] = 0
+        x_batch[k, n+0, m+1, 0] = 1
+        x_batch[k, n+1, m+1, 0] = 1
+        x_batch[k, n+2, m+1, 0] = 1
+        x_batch[k, n+0, m+2, 0] = 0
+        x_batch[k, n+1, m+2, 0] = 1
+        x_batch[k, n+2, m+2, 0] = 0
         y_class_batch[k] = 1
         k += 1
 
@@ -85,15 +85,15 @@ for n in np.arange(8):
 # 1 0 1
 for n in np.arange(8):
     for m in np.arange(8):
-        x_batch[k, 0, n+0, m+0] = 1
-        x_batch[k, 0, n+1, m+0] = 0
-        x_batch[k, 0, n+2, m+0] = 1
-        x_batch[k, 0, n+0, m+1] = 0
-        x_batch[k, 0, n+1, m+1] = 1
-        x_batch[k, 0, n+2, m+1] = 0
-        x_batch[k, 0, n+0, m+2] = 1
-        x_batch[k, 0, n+1, m+2] = 0
-        x_batch[k, 0, n+2, m+2] = 1
+        x_batch[k, n+0, m+0, 0] = 1
+        x_batch[k, n+1, m+0, 0] = 0
+        x_batch[k, n+2, m+0, 0] = 1
+        x_batch[k, n+0, m+1, 0] = 0
+        x_batch[k, n+1, m+1, 0] = 1
+        x_batch[k, n+2, m+1, 0] = 0
+        x_batch[k, n+0, m+2, 0] = 1
+        x_batch[k, n+1, m+2, 0] = 0
+        x_batch[k, n+2, m+2, 0] = 1
         y_class_batch[k] = 2
         k += 1
 
@@ -102,15 +102,15 @@ for n in np.arange(8):
 # 0 1 0
 for n in np.arange(8):
     for m in np.arange(8):
-        x_batch[k, 0, n+0, m+0] = 0
-        x_batch[k, 0, n+1, m+0] = 1
-        x_batch[k, 0, n+2, m+0] = 0
-        x_batch[k, 0, n+0, m+1] = 1
-        x_batch[k, 0, n+1, m+1] = 0
-        x_batch[k, 0, n+2, m+1] = 1
-        x_batch[k, 0, n+0, m+2] = 0
-        x_batch[k, 0, n+1, m+2] = 1
-        x_batch[k, 0, n+2, m+2] = 0
+        x_batch[k, n+0, m+0, 0] = 0
+        x_batch[k, n+1, m+0, 0] = 1
+        x_batch[k, n+2, m+0, 0] = 0
+        x_batch[k, n+0, m+1, 0] = 1
+        x_batch[k, n+1, m+1, 0] = 0
+        x_batch[k, n+2, m+1, 0] = 1
+        x_batch[k, n+0, m+2, 0] = 0
+        x_batch[k, n+1, m+2, 0] = 1
+        x_batch[k, n+2, m+2, 0] = 0
         y_class_batch[k] = 3
         k += 1
 

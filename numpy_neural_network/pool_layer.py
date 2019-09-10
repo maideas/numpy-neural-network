@@ -14,8 +14,8 @@ class MaxPool:
         self.y = np.zeros(self.shape_out)  # layer output data
         self.grad_x = np.zeros(self.shape_in)  # layer input gradients
 
-        self.steps1 = self.shape_out[1]
-        self.steps2 = self.shape_out[2]
+        self.steps_h = self.shape_out[0]
+        self.steps_w = self.shape_out[1]
 
         self.check()
 
@@ -31,18 +31,18 @@ class MaxPool:
         self.x = x.copy()
         self.y = np.full(self.shape_out, np.nan)
 
-        for ch in np.arange(self.shape_in[0]):
-            for s1 in np.arange(self.steps1):
-                for s2 in np.arange(self.steps2):
+        for ch in np.arange(self.shape_in[2]):
+            for sh in np.arange(self.steps_h):
+                for sw in np.arange(self.steps_w):
 
                     kernel_x = self.x[
-                        ch,
-                        s1 * self.kernel_size : s1 * self.kernel_size + self.kernel_size,
-                        s2 * self.kernel_size : s2 * self.kernel_size + self.kernel_size
+                        sh * self.kernel_size : sh * self.kernel_size + self.kernel_size,
+                        sw * self.kernel_size : sw * self.kernel_size + self.kernel_size,
+                        ch
                     ]
 
                     # set single output channel value to maximum input slice data value ...
-                    self.y[ch, s1, s2] = np.amax(kernel_x)
+                    self.y[sh, sw, ch] = np.amax(kernel_x)
 
         return self.y
 
@@ -55,14 +55,14 @@ class MaxPool:
             "MaxPool: backward() gradient shape ({0}) has ".format(grad_y.shape) + \
             "to be equal to layer shape_out ({0}) !".format(self.shape_out)
 
-        for ch in np.arange(self.shape_in[0]):
-            for s1 in np.arange(self.steps1):
-                for s2 in np.arange(self.steps2):
+        for ch in np.arange(self.shape_in[2]):
+            for sh in np.arange(self.steps_h):
+                for sw in np.arange(self.steps_w):
 
                     kernel_x = self.x[
-                        ch,
-                        s1 * self.kernel_size : s1 * self.kernel_size + self.kernel_size,
-                        s2 * self.kernel_size : s2 * self.kernel_size + self.kernel_size
+                        sh * self.kernel_size : sh * self.kernel_size + self.kernel_size,
+                        sw * self.kernel_size : sw * self.kernel_size + self.kernel_size,
+                        ch
                     ]
 
                     # get 2D index of max value inside current kernel x data ...
@@ -71,10 +71,10 @@ class MaxPool:
                     # set max x value kernel area position to related y gradient value ...
                     # (all other gradient values inside kernel area are kept 0)
                     self.grad_x[
-                        ch,
-                        s1 * self.kernel_size + idx[0],
-                        s2 * self.kernel_size + idx[1]
-                    ] = grad_y[ch, s1, s2]
+                        sh * self.kernel_size + idx[0],
+                        sw * self.kernel_size + idx[1],
+                        ch
+                    ] = grad_y[sh, sw, ch]
 
         return self.grad_x
 
@@ -85,24 +85,24 @@ class MaxPool:
     def check(self):
         '''check layer configuration consistency'''
 
+        assert self.shape_in[0] % self.kernel_size == 0, \
+            "MaxPool: data shape_in[0] ({0}) ".format(self.shape_in[0]) + \
+            "has to be a multiple of kernel_size ({0}) !".format(self.kernel_size)
         assert self.shape_in[1] % self.kernel_size == 0, \
             "MaxPool: data shape_in[1] ({0}) ".format(self.shape_in[1]) + \
             "has to be a multiple of kernel_size ({0}) !".format(self.kernel_size)
-        assert self.shape_in[2] % self.kernel_size == 0, \
-            "MaxPool: data shape_in[2] ({0}) ".format(self.shape_in[2]) + \
-            "has to be a multiple of kernel_size ({0}) !".format(self.kernel_size)
 
+        assert self.shape_in[0] >= self.kernel_size, \
+            "MaxPool: layer shape_in[0] ({0}) has ".format(self.shape_in[0]) + \
+            "to be equal or larger than kernel_size ({0}) !".format(self.kernel_size)
         assert self.shape_in[1] >= self.kernel_size, \
             "MaxPool: layer shape_in[1] ({0}) has ".format(self.shape_in[1]) + \
             "to be equal or larger than kernel_size ({0}) !".format(self.kernel_size)
-        assert self.shape_in[2] >= self.kernel_size, \
-            "MaxPool: layer shape_in[2] ({0}) has ".format(self.shape_in[2]) + \
-            "to be equal or larger than kernel_size ({0}) !".format(self.kernel_size)
 
-        assert self.shape_out[1] == self.steps1, \
+        assert self.shape_out[0] == self.steps_h, \
+            "Conv2d: layer shape_out[0] ({0}) has ".format(self.shape_out[0]) + \
+            "to be equal to layer internal steps_h ({0}) !".format(self.steps_h)
+        assert self.shape_out[1] == self.steps_w, \
             "Conv2d: layer shape_out[1] ({0}) has ".format(self.shape_out[1]) + \
-            "to be equal to layer internal steps1 ({0}) !".format(self.steps1)
-        assert self.shape_out[2] == self.steps2, \
-            "Conv2d: layer shape_out[2] ({0}) has ".format(self.shape_out[2]) + \
-            "to be equal to layer internal steps2 ({0}) !".format(self.steps2)
+            "to be equal to layer internal steps_w ({0}) !".format(self.steps_w)
 
