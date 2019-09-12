@@ -44,3 +44,4 @@ To adjust the weights *(parameters)* of the network, an optimization algorithm i
   - Adadelta
   - Adam
 
+The related GitHub Pages can be found [here ...](https://m-a-h-e.github.io)
