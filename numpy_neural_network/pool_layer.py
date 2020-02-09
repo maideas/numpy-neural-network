@@ -74,7 +74,7 @@ class MaxPool:
 
             # set max x value kernel area position to related y gradient value ...
             # (all other gradient values inside kernel area are kept 0)
-            self.grad_x[x_index][idx] = grad_y[y_index]
+            self.grad_x[x_index][idx] += grad_y[y_index]
 
         return self.grad_x
 

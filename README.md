@@ -1,4 +1,4 @@
-# A NumPy based Neural Network Library Implementation
+# A NumPy based Neural Network Package Implementation
 
 ## Objective
 
@@ -27,7 +27,7 @@ An easy way to build up a neural network is to define the following types of lay
   - [LeakyReLU](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/LeakyReLU.ipynb)
   - [Tanh](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Tanh.ipynb)
   - [Sigmoid](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Sigmoid.ipynb)
-  - [Softmax](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Softmax.ipynb)
+  - [Softmax](https://m-a-h-e.github.io/softmax.html)
 
 - **Loss layer** *(to implement network error loss functions)*
   - RMS loss *(= L2 Norm loss)*
@@ -44,3 +44,4 @@ To adjust the weights *(parameters)* of the network, an optimization algorithm i
   - Adadelta
   - Adam
 
+The related GitHub Pages can be found [here ...](https://m-a-h-e.github.io)
