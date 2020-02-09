@@ -41,10 +41,8 @@ class FullyConn:
         output gradients (grad_y) -> derivative w.r.t inputs -> input gradients (grad_x)
         returns : layer input gradients
         '''
-        self.grad_x = np.zeros(self.size_in)
-        for n in np.arange(self.size_out):
-            self.grad_w[n] = self.x * grad_y[n]
-            self.grad_x += self.w[n] * grad_y[n]
+        self.grad_w = np.outer(grad_y, self.x)
+        self.grad_x = np.matmul(grad_y, self.w)
         # removal of bias gradient from return value and shape like x value ...
         return self.grad_x[:-1].reshape(self.x_shape)
 
