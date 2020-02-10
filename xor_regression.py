@@ -28,7 +28,7 @@ model.loss_layer = npnn.loss_layer.RMSLoss(1)
 optimizer = npnn.optimizer.Adam(model, alpha=1e-3)
 
 ################################################################################
-# the data and it's preparation ...
+# the data and its preparation ...
 
 x_batch = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 y_batch = np.array([0, 1, 1, 0])

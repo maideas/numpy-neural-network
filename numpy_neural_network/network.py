@@ -2,7 +2,7 @@
 import numpy as np
 
 class Model:
-    '''encapsulates the network model structure (e.g. it's layer definition, etc.)'''
+    '''encapsulates the network model structure (e.g. its layer definition, etc.)'''
 
     def __init__(self, layers):
         self.layers = layers

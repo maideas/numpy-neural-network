@@ -39,7 +39,7 @@ model.loss_layer = npnn.loss_layer.CrossEntropyLoss(4)
 optimizer = npnn.optimizer.Adam(model, alpha=1e-2)
 
 ################################################################################
-# the data and it's preparation ...
+# the data and its preparation ...
 
 x_batch = np.zeros(((8*8*4), 10, 10, 1))
 y_class_batch = np.zeros(8*8*4)

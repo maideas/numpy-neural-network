@@ -36,7 +36,7 @@ model.loss_layer = npnn.loss_layer.CrossEntropyLoss(2)
 optimizer = npnn.optimizer.Adam(model, alpha=1e-3)
 
 ################################################################################
-# the data and it's preparation ...
+# the data and its preparation ...
 
 x_batch = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 y_class_batch = np.array([0, 1, 1, 0])
