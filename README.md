@@ -22,12 +22,12 @@ An easy way to build up a neural network is to define the following types of lay
   - MaxPooling layer
 
 - **Function layer** *(to implement neuron activation functions)*
-  - [Linear](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Linear.ipynb)
-  - [ReLU](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/ReLU.ipynb)
-  - [LeakyReLU](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/LeakyReLU.ipynb)
-  - [Tanh](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Tanh.ipynb)
-  - [Sigmoid](https://nbviewer.jupyter.org/github/m-a-h-e/numpy-neural-network/blob/master/Sigmoid.ipynb)
-  - [Softmax](https://m-a-h-e.github.io/softmax.html)
+  - [Linear](https://nbviewer.jupyter.org/github/maideas/numpy-neural-network/blob/master/Linear.ipynb)
+  - [ReLU](https://nbviewer.jupyter.org/github/maideas/numpy-neural-network/blob/master/ReLU.ipynb)
+  - [LeakyReLU](https://nbviewer.jupyter.org/github/maideas/numpy-neural-network/blob/master/LeakyReLU.ipynb)
+  - [Tanh](https://nbviewer.jupyter.org/github/maideas/numpy-neural-network/blob/master/Tanh.ipynb)
+  - [Sigmoid](https://nbviewer.jupyter.org/github/maideas/numpy-neural-network/blob/master/Sigmoid.ipynb)
+  - [Softmax](https://maideas.github.io/softmax.html)
 
 - **Loss layer** *(to implement network error loss functions)*
   - RMS loss *(= L2 Norm loss)*
@@ -44,4 +44,4 @@ To adjust the weights *(parameters)* of the network, an optimization algorithm i
   - Adadelta
   - Adam
 
-The related GitHub Pages can be found [here ...](https://m-a-h-e.github.io)
+The related GitHub Pages can be found [here ...](https://maideas.github.io)
