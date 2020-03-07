@@ -166,6 +166,32 @@ class Sigmoid(FuncLayer):
         return self.grad_x
 
 
+class Softplus(FuncLayer):
+    '''softplus activation function'''
+
+    def forward(self, x):
+        '''
+        activation function, used to pass data forward
+        --------------------------------------------
+        f(x) = ln(1.0 + e^x)
+        --------------------------------------------
+        '''
+        self.exp_x = np.exp(x)
+        self.y = np.log(1.0 + self.exp_x)
+        return self.y
+
+    def backward(self, grad_y):
+        '''
+        activation function derivative, used to pass gradients backward
+        --------------------------------------------
+        f'(x) = e^x / (1.0 + e^x)
+        gradient(x) = (e^x / (1.0 + e^x)) * gradient(y)
+        --------------------------------------------
+        '''
+        self.grad_x = (self.exp_x / (1.0 + self.exp_x)) * grad_y
+        return self.grad_x
+
+
 class Softmax(FuncLayer):
     '''softmax activation function'''
 
