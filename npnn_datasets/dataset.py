@@ -10,7 +10,11 @@ class DataSet:
         self.y_mean = 0.0
         self.y_variance = 1.0
 
-    def prepare(self, train_fraction, normalize_x, normalize_y):
+        # x and y data have to be initilized by derived class
+        self.x_data = np.array([])
+        self.y_data = np.array([])
+
+    def prepare(self, train_fraction=0.7, normalize_x=True, normalize_y=True):
 
         # calculate data mean and variance (if requested) ...
         if normalize_x:
