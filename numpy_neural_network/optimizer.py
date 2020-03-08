@@ -4,21 +4,20 @@ import numpy as np
 class Optimizer:
     '''network model weights optimizer base class'''
 
-    def __init__(self, model, mini_batch_size=50,
+    def __init__(self, model,
                  alpha=1e-3,
                  gamma=0.0,
                  beta1=0.9,
                  beta2=0.999):
         '''
         model : network model object
-        mini_batch_size : number of data vectors used to do a network weight update
         alpha : learning rate
         gamma : weight regularization
         beta1 : Adam beta1 / weight adaption momentum
         beta2 : Adam beta2 / RMSprop beta2
         '''
         self.model = model
-        self.mini_batch_size = mini_batch_size
+        self.dataset = None
 
         self.alpha = alpha
         self.gamma = gamma
@@ -50,34 +49,27 @@ class Optimizer:
         layer.w += -self.alpha * layer.grad_w
         #print("weights = {0}".format(layer.w))
 
-    def step(self, x_batch, target_batch):
+    def step(self):
         '''
         stochastic mini batch optimization step
-        x_batch      : network model input data batch
-        target_batch : related network model target data batch
         '''
-        batch_size = len(x_batch)
 
-        # fix mini_batch_size if needed (for small batch sizes) ...
-        # to get a good stochastic behavior, the mini batch size
-        # shall be smaller than the complete data batch size: for this
-        # reason we limit its size to the square root of batch size ...
-        if self.mini_batch_size > int(np.trunc(np.sqrt(batch_size))):
-            self.mini_batch_size = int(np.trunc(np.sqrt(batch_size)))
+        # x_batch : network model input data batch
+        # y_batch : related network model target data batch
+        x_batch, y_batch = self.dataset.get_train_batch()
 
-        # sample mini_batch from given batch data ...
-        idx = np.random.randint(batch_size, size=self.mini_batch_size)
-        x_mini_batch = x_batch[idx]
-        target_mini_batch = target_batch[idx]
+        # normalize network (input, output) training data ...
+        x_batch = self.dataset.normalize(x_batch, self.dataset.x_mean, self.dataset.x_variance)
+        y_batch = self.dataset.normalize(y_batch, self.dataset.y_mean, self.dataset.y_variance)
 
         # initialize gradients to zero ...
         self.zero_grad()
 
         # pass mini batch data through the net ...
         self.loss = np.zeros(self.model.loss_layer.size)
-        for n in np.arange(self.mini_batch_size):
-            x = x_mini_batch[n]
-            target = target_mini_batch[n]
+        for n in np.arange(x_batch.shape[0]):
+            x = x_batch[n]
+            y = y_batch[n]
 
             # forward pass through all layers ...
             for layer in self.model.layers:
@@ -85,7 +77,7 @@ class Optimizer:
                 #print("activation = {0}".format(x))
 
             # loss calculation which gives a gradient ...
-            self.loss += self.model.loss_layer.forward(x, target)
+            self.loss += self.model.loss_layer.forward(x, y)
             grad = self.model.loss_layer.backward()
 
             # backward pass through all layers ...
@@ -94,7 +86,7 @@ class Optimizer:
                 grad = layer.backward(grad)
 
         # calculate mini batch loss ...
-        self.loss /= self.mini_batch_size
+        self.loss /= x_batch.shape[0]
 
         # adjust the weights ...
         for layer in self.model.layers:
@@ -104,6 +96,36 @@ class Optimizer:
                 #print("weights = {0}".format(layer.w))
 
         self.steps += 1
+
+    def predict(self, x_batch):
+        '''
+        network model forward path calculation (prediction) of a given x batch
+        x_batch : network model input data
+        returns : network model output data
+        '''
+        # normalize network input data ...
+        x_batch = self.dataset.normalize(x_batch, self.dataset.x_mean, self.dataset.x_variance)
+
+        y_batch = []
+        for x in x_batch:
+            for layer in self.model.layers:
+                x = layer.forward(x)
+            y_batch.append(x)
+
+        # denormalize network output data ...
+        return self.dataset.denormalize(np.array(y_batch), self.dataset.y_mean, self.dataset.y_variance)
+
+    def predict_class(self, x_batch):
+        '''
+        predict class batch related to input batch
+        x_batch : network model input data
+        returns : class integer batch
+        '''
+        y_batch = self.predict(x_batch)
+        c_batch = []
+        for y in y_batch:
+            c_batch.append(np.argmax(y))
+        return np.array(c_batch)
 
 
 class SGD(Optimizer):
