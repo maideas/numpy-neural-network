@@ -55,7 +55,7 @@ ax2 = plt.subplot(212)
 loss_x = []
 train_loss_y = []
 
-for episode in np.arange(200):
+for episode in np.arange(1000):
 
     optimizer.step()
     print("episide = {0:5d}, alpha = {1:8.6f}, loss = {2:8.6f}".format(episode, optimizer.alpha, np.mean(optimizer.loss)))
