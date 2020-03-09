@@ -6,7 +6,6 @@ sys.path.append("../../")
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.figure import figaspect
 import numpy_neural_network as npnn
 import npnn_datasets
 

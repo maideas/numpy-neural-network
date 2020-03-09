@@ -6,7 +6,6 @@ sys.path.append("../../")
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.figure import figaspect
 import numpy_neural_network as npnn
 import npnn_datasets
 
@@ -35,7 +34,7 @@ model = npnn.network.Model([
 
 model.loss_layer = npnn.loss_layer.RMSLoss(1)
 
-optimizer = npnn.optimizer.Adam(model, alpha=5e-4)
+optimizer = npnn.optimizer.Adam(model, alpha=5e-4)  # Tanh
 
 optimizer.dataset = npnn_datasets.NoisySine()
 
