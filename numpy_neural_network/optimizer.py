@@ -127,6 +127,26 @@ class Optimizer:
             c_batch.append(np.argmax(y))
         return np.array(c_batch)
 
+    def calculate_loss(self, x_batch, t_batch):
+        '''
+        calculate loss of a batch of data
+        x_batch : input data
+        t_batch : target data
+        returns : batch loss
+        '''
+        x_batch = self.dataset.normalize(x_batch, self.dataset.x_mean, self.dataset.x_variance)
+        t_batch = self.dataset.normalize(t_batch, self.dataset.y_mean, self.dataset.y_variance)
+        
+        loss = np.zeros(self.model.loss_layer.size)
+
+        for x, t in zip(x_batch, t_batch):
+            for layer in self.model.layers:
+                x = layer.forward(x)
+            
+            loss += self.model.loss_layer.forward(x, t)
+
+        return loss / x_batch.shape[0]
+
 
 class SGD(Optimizer):
     '''stochastic gradient descent optimizer with weight momentum'''
