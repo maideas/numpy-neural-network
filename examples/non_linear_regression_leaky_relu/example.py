@@ -16,26 +16,26 @@ matplotlib.rcParams['toolbar'] = 'None'
 
 model = npnn.network.Model([
     npnn.FullyConn(1, 10),
-    npnn.Tanh(10),
+    npnn.LeakyReLU(10),
     npnn.FullyConn(10, 20),
-    npnn.Tanh(20),
+    npnn.LeakyReLU(20),
     npnn.FullyConn(20, 40),
-    npnn.Tanh(40),
+    npnn.LeakyReLU(40),
     npnn.FullyConn(40, 80),
-    npnn.Tanh(80),
+    npnn.LeakyReLU(80),
     npnn.FullyConn(80, 40),
-    npnn.Tanh(40),
+    npnn.LeakyReLU(40),
     npnn.FullyConn(40, 20),
-    npnn.Tanh(20),
+    npnn.LeakyReLU(20),
     npnn.FullyConn(20, 10),
-    npnn.Tanh(10),
+    npnn.LeakyReLU(10),
     npnn.FullyConn(10, 1),
     npnn.Linear(1)
 ])
 
 model.loss_layer = npnn.loss_layer.RMSLoss(1)
 
-optimizer = npnn.optimizer.Adam(model, alpha=5e-4)
+optimizer = npnn.optimizer.Adam(model, alpha=1e-3)  # LeakyReLU
 
 optimizer.dataset = npnn_datasets.NoisySine()
 
