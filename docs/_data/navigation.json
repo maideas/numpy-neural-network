@@ -1,0 +1,12 @@
+{
+  "categories": [
+    {
+      "name": "My GitHub Repositories",
+      "repo_names": [
+        "numpy-neural-network",
+        "python-basics",
+        "overview"
+      ]
+    }
+  ]
+}
