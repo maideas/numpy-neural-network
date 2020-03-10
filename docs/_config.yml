@@ -1,0 +1,7 @@
+title: MAIDEAS
+description: A NumPy based Neural Network Package Implementation.
+google_site_verification_key: 1yU377-5avAh8CpOrU11zN6SuYYP0mq6g_wA7BP5NtM
+remote_theme: maideas/maideas-blue-theme
+markdown: kramdown
+sass:
+  style: compressed
