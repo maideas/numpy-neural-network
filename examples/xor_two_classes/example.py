@@ -24,7 +24,7 @@ model = npnn.network.Model([
 
 model.loss_layer = npnn.loss_layer.CrossEntropyLoss(2)
 
-optimizer = npnn.optimizer.Adam(model, alpha=1e-2)
+optimizer = npnn.optimizer.Adam(model, alpha=2e-2)
 
 optimizer.dataset = npnn_datasets.XORTwoClasses()
 
@@ -36,53 +36,48 @@ plt.figure()
 ax1 = plt.subplot(211)
 ax2 = plt.subplot(212)
 
-mesh_x, mesh_y = np.meshgrid(np.arange(-0.3, 1.4, 0.05), np.arange(-0.3, 1.4, 0.1))
-linear_x = mesh_x.reshape((-1,1))
-linear_y = mesh_y.reshape((-1,1))
-linear_xy = np.hstack((linear_x, linear_y))
-
 loss_x = []
-train_loss_y = []
-validation_loss_y = []
+train_loss_y0 = []
+train_loss_y1 = []
+validation_loss_y0 = []
+validation_loss_y1 = []
 
 for episode in np.arange(500):
-
-    linear_z = optimizer.predict(linear_xy)
-    linear_z0 = np.array([z[0] for z in linear_z])
-    mesh_z = linear_z0.reshape(mesh_x.shape)
-    ax1.cla()
-    ax1.pcolormesh(mesh_x, mesh_y, mesh_z, cmap='coolwarm');
-    
-    ax1.scatter([0, 1], [0, 1], s=30, c='tab:blue')
-    ax1.scatter([0, 1], [1, 0], s=30, c='tab:red')
 
     # step the optimizer ...
     optimizer.step()
 
     # append the optimizer step train loss ...
     loss_x.append(episode)
-    tloss = np.mean(optimizer.loss)
-    train_loss_y.append(tloss)
+    tloss = optimizer.loss
+    train_loss_y0.append(tloss[0])
+    train_loss_y1.append(tloss[1])
 
     # calculate and append the validation loss ...
-    vloss = np.mean(
-        optimizer.calculate_loss(
-            optimizer.dataset.x_validation_data,
-            optimizer.dataset.y_validation_data
-        )
+    vloss = optimizer.calculate_loss(
+        optimizer.dataset.x_validation_data,
+        optimizer.dataset.y_validation_data
     )
-    validation_loss_y.append(vloss)
+    validation_loss_y0.append(vloss[0])
+    validation_loss_y1.append(vloss[1])
 
     # print the episode and loss values ...
-    print("episode = {0:5d}, tloss = {2:8.6f}, vloss = {2:8.6f}".format(episode, tloss, vloss))
+    print("episode = {0:5d}, tloss = {2:8.6f}, vloss = {2:8.6f}".format(episode, tloss[0], vloss[0]))
 
     # print the train loss (blue) and validation loss (orange) ...
+    ax1.cla()
+    ax1.set_xlabel('episode')
+    ax1.set_ylabel('loss class 0')
+    ax1.set_yscale('log')
+    ax1.set_ylim((min(train_loss_y0)/2.0, max(train_loss_y0)*2.0))
+    ax1.plot(loss_x, train_loss_y0, loss_x, validation_loss_y0)
+
     ax2.cla()
     ax2.set_xlabel('episode')
-    ax2.set_ylabel('loss')
+    ax2.set_ylabel('loss class 1')
     ax2.set_yscale('log')
-    ax2.set_ylim((min(train_loss_y)/2.0, max(train_loss_y)*2.0))
-    ax2.plot(loss_x, train_loss_y, loss_x, validation_loss_y)
+    ax2.set_ylim((min(train_loss_y1)/2.0, max(train_loss_y1)*2.0))
+    ax2.plot(loss_x, train_loss_y1, loss_x, validation_loss_y1)
 
     plt.draw()
     plt.savefig('png/episode{0:04d}.png'.format(episode))  # save png to create mp4 later on
