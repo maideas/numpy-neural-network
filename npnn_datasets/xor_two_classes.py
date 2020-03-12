@@ -5,6 +5,8 @@ from npnn_datasets import DataSet
 class XORTwoClasses(DataSet):
 
     def __init__(self, points=400, train_fraction=0.7):
+        super(XORTwoClasses, self).__init__()
+
         self.x_data = np.array([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])
         self.y_data = np.array([0.0, 1.0, 1.0, 0.0])
 
@@ -19,5 +21,5 @@ class XORTwoClasses(DataSet):
             a.append([0, 1] if y < 0.5 else [1, 0])
         self.y_data = np.array(a)
 
-        self.prepare(train_fraction, True, True)
+        self.prepare(train_fraction, normalize_x=True, normalize_y=False)
 
