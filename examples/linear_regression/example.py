@@ -58,7 +58,7 @@ for episode in np.arange(400):
         optimizer.calculate_loss(
             optimizer.dataset.x_validation_data,
             optimizer.dataset.y_validation_data
-        )
+        )[0]
     )
     validation_loss_y.append(vloss)
 
