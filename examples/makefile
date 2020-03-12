@@ -16,6 +16,7 @@ example:
 
 image1:
 	cp `ls -1tr png/episode*.png | tail -n 1` `ls -1tr png/episode*.png | head -n 1`
+	cp `ls -1tr png/episode*.png | tail -n 1` $(NAME).png
 
 encode:
 	ffmpeg -i png/episode%04d.png -codec:v libvpx-vp9 -b:v 2M $(NAME).webm
@@ -26,4 +27,5 @@ move:
 	mv $(NAME).webm ../../docs
 	mv $(NAME).ogv  ../../docs
 	mv $(NAME).mp4  ../../docs
+	mv $(NAME).png  ../../docs
 
