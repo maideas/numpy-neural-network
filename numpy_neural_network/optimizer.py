@@ -65,8 +65,10 @@ class Optimizer:
         # initialize gradients to zero ...
         self.zero_grad()
 
-        # pass mini batch data through the net ...
         self.loss = np.zeros(self.model.loss_layer.size)
+        self.accuracy = 0.0
+
+        # pass mini batch data through the net ...
         for n in np.arange(x_batch.shape[0]):
             x = x_batch[n]
             y = y_batch[n]
@@ -80,6 +82,9 @@ class Optimizer:
             self.loss += self.model.loss_layer.forward(x, y)
             grad = self.model.loss_layer.backward()
 
+            if np.argmax(x) == np.argmax(y):
+                self.accuracy += 1.0
+
             # backward pass through all layers ...
             for layer in self.model.layers[::-1]:
                 #print("gradient = {0}".format(grad))
@@ -87,6 +92,7 @@ class Optimizer:
 
         # calculate mini batch loss ...
         self.loss /= x_batch.shape[0]
+        self.accuracy /= x_batch.shape[0]
 
         # adjust the weights ...
         for layer in self.model.layers:
@@ -139,13 +145,19 @@ class Optimizer:
         
         loss = np.zeros(self.model.loss_layer.size)
 
+        accuracy = 0.0
         for x, t in zip(x_batch, t_batch):
             for layer in self.model.layers:
                 x = layer.forward(x)
             
             loss += self.model.loss_layer.forward(x, t)
+            if np.argmax(x) == np.argmax(t):
+                accuracy += 1.0
 
-        return loss / x_batch.shape[0]
+        loss /= x_batch.shape[0]
+        accuracy /= x_batch.shape[0]
+
+        return loss, accuracy
 
 
 class SGD(Optimizer):
