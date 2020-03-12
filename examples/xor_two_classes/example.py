@@ -80,8 +80,8 @@ for episode in np.arange(500):
     ax2.cla()
     ax2.set_xlabel('episode')
     ax2.set_ylabel('loss')
-    #ax2.set_yscale('log')
-    #ax2.set_ylim((min(train_loss_y)/2.0, max(train_loss_y)*2.0))
+    ax2.set_yscale('log')
+    ax2.set_ylim((min(train_loss_y)/2.0, max(train_loss_y)*2.0))
     ax2.plot(loss_x, train_loss_y, loss_x, validation_loss_y)
 
     plt.draw()
