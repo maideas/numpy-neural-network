@@ -61,7 +61,7 @@ class DataSet:
         return self.x_validation_data[idx], self.y_validation_data[idx]
 
     def get_mean_and_variance(self, data):
-        return np.mean(data, axis=0), np.std(data, axis=0)
+        return np.mean(data), np.std(data)
 
     def normalize(self, data, mean, variance):
         return (data - mean) / variance
