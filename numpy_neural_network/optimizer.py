@@ -49,14 +49,14 @@ class Optimizer:
         layer.w += -self.alpha * layer.grad_w
         #print("weights = {0}".format(layer.w))
 
-    def step(self):
+    def step(self, batch_size=None):
         '''
         stochastic mini batch optimization step
         '''
 
         # x_batch : network model input data batch
         # y_batch : related network model target data batch
-        x_batch, y_batch = self.dataset.get_train_batch()
+        x_batch, y_batch = self.dataset.get_train_batch(batch_size)
 
         # normalize network (input, output) training data ...
         x_batch = self.dataset.normalize(x_batch, self.dataset.x_mean, self.dataset.x_variance)
