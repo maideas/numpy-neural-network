@@ -85,7 +85,7 @@ class CrossEntropyLoss(LossLayer):
         f'(x) = -target / x
         --------------------------------------------
         '''
-        min_x = 1e-3  # prevents divide by 0
+        min_x = 1e-6  # prevents divide by 0
         grad_x = np.zeros(self.size)
         for n in np.arange(self.size):
             if self.x[n] > min_x:
