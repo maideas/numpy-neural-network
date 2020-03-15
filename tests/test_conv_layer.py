@@ -7,7 +7,7 @@ import numpy as np
 from numpy_neural_network import Conv2d
 
 
-def ref_conv2d_forward(x, w, kernel_size, kernel_depth, num_kernels, stride, num_groups):
+def ref_forward(x, w, kernel_size, kernel_depth, num_kernels, stride, num_groups):
 
     # calculation of some useful layer configuration values ...
     steps_h = int(1 + (x.shape[0] - kernel_size) / stride)
@@ -56,7 +56,7 @@ def ref_conv2d_forward(x, w, kernel_size, kernel_depth, num_kernels, stride, num
     return y
 
 
-def ref_conv2d_backward_gx(gy, w, kernel_size, kernel_depth, num_kernels, stride, num_groups):
+def ref_backward_gx(gy, w, kernel_size, kernel_depth, num_kernels, stride, num_groups):
 
     # calculation of some useful layer configuration values ...
     steps_h = gy.shape[0]
@@ -101,7 +101,7 @@ def ref_conv2d_backward_gx(gy, w, kernel_size, kernel_depth, num_kernels, stride
     return gx
 
 
-def ref_conv2d_backward_gw(gy, x, kernel_size, kernel_depth, num_kernels, stride, num_groups):
+def ref_backward_gw(gy, x, kernel_size, kernel_depth, num_kernels, stride, num_groups):
 
     # calculation of some useful layer configuration values ...
     steps_h = gy.shape[0]
@@ -274,9 +274,9 @@ class TestConv2D(unittest.TestCase):
                     gy = np.random.normal(0.0, 1.0, shape_out)
 
                 # reference calculation ...
-                y_ref  = ref_conv2d_forward     (x,  w, kernel_size, kernel_depth, num_kernels, stride, groups)
-                gx_ref = ref_conv2d_backward_gx (gy, w, kernel_size, kernel_depth, num_kernels, stride, groups)
-                gw_ref = ref_conv2d_backward_gw (gy, x, kernel_size, kernel_depth, num_kernels, stride, groups)
+                y_ref  = ref_forward     (x,  w, kernel_size, kernel_depth, num_kernels, stride, groups)
+                gx_ref = ref_backward_gx (gy, w, kernel_size, kernel_depth, num_kernels, stride, groups)
+                gw_ref = ref_backward_gw (gy, x, kernel_size, kernel_depth, num_kernels, stride, groups)
 
                 # set the layer weights according the reference values ...
                 layer.w = w

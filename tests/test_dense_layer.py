@@ -7,7 +7,7 @@ import numpy as np
 from numpy_neural_network import FullyConn
 
 
-def ref_dense_forward(x, w, size_in, size_out):
+def ref_forward(x, w, size_in, size_out):
 
     # initialization of the output vector with zeros ...
     y = np.zeros(size_out)
@@ -32,7 +32,7 @@ def ref_dense_forward(x, w, size_in, size_out):
     return y
 
 
-def ref_dense_backward_gx(gy, w, size_in, size_out):
+def ref_backward_gx(gy, w, size_in, size_out):
 
     # initialization of the output vector with zeros ...
     gx = np.zeros(size_in)
@@ -52,7 +52,7 @@ def ref_dense_backward_gx(gy, w, size_in, size_out):
     return gx
 
 
-def ref_dense_backward_gw(gy, x, size_in, size_out):
+def ref_backward_gw(gy, x, size_in, size_out):
 
     # initialization of the weight gradient array with zeros ...
     gw = np.zeros((size_out, size_in + 1))
@@ -145,9 +145,9 @@ class TestDense(unittest.TestCase):
                     gy = np.random.normal(0.0, 1.0, shape_out)
 
                 # reference calculation ...
-                y_ref  = ref_dense_forward     (x,  w, size_in, size_out)
-                gx_ref = ref_dense_backward_gx (gy, w, size_in, size_out)
-                gw_ref = ref_dense_backward_gw (gy, x, size_in, size_out)
+                y_ref  = ref_forward     (x,  w, size_in, size_out)
+                gx_ref = ref_backward_gx (gy, w, size_in, size_out)
+                gw_ref = ref_backward_gw (gy, x, size_in, size_out)
 
                 # set the layer weights according the reference values ...
                 layer.w = w
