@@ -50,7 +50,7 @@ valid_loss = []
 train_accuracy = []
 valid_accuracy = []
 
-for episode in np.arange(1000):
+for episode in np.arange(2500):
 
     # step the optimizer ...
     optimizer.step()
@@ -61,7 +61,7 @@ for episode in np.arange(1000):
     #===========================================================================
 
     mini_train_loss.append(np.mean(optimizer.loss))
-    mini_train_accuracy.append(optimizer.accuracy * 100.0)
+    mini_train_accuracy.append(optimizer.accuracy)
 
     ax1.cla()
     ax1.set_xlabel('episode')
@@ -72,8 +72,8 @@ for episode in np.arange(1000):
 
     ax2.cla()
     ax2.set_xlabel('episode')
-    ax2.set_ylabel('train mini-batch accuracy')
-    ax2.set_ylim(-10, 110)
+    ax2.set_ylabel('train mini-batch accuracy [%]')
+    ax2.set_ylim(-5, 105)
     ax2.plot(episodes, mini_train_accuracy)
 
     #===========================================================================
@@ -82,15 +82,15 @@ for episode in np.arange(1000):
 
     tloss, taccuracy = optimizer.calculate_loss(optimizer.dataset.x_train_data, optimizer.dataset.y_train_data)
     train_loss.append(np.mean(tloss))
-    train_accuracy.append(taccuracy * 100.0)
+    train_accuracy.append(taccuracy)
 
     vloss, vaccuracy = optimizer.calculate_loss(optimizer.dataset.x_validation_data, optimizer.dataset.y_validation_data)
     valid_loss.append(np.mean(vloss))
-    valid_accuracy.append(vaccuracy * 100.0)
+    valid_accuracy.append(vaccuracy)
 
     # print the episode and loss values ...
-    print("episode = {0:5d}, tloss = {1:8.6f}, vloss = {2:8.6f}, taccuracy = {3:8.6f}, vaccuracy = {3:8.6f}".format(
-        episode, np.mean(tloss), np.mean(vloss), taccuracy * 100.0, vaccuracy * 100.0
+    print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}, taccuracy = {3:5.3f}%, vaccuracy = {3:5.3f}%".format(
+        episode, np.mean(tloss), np.mean(vloss), taccuracy, vaccuracy
     ))
 
     ax3.cla()
@@ -102,8 +102,8 @@ for episode in np.arange(1000):
 
     ax4.cla()
     ax4.set_xlabel('episode')
-    ax4.set_ylabel('dataset accuracy')
-    ax4.set_ylim(-10, 110)
+    ax4.set_ylabel('dataset accuracy [%]')
+    ax4.set_ylim(-5, 105)
     ax4.plot(episodes, train_accuracy, episodes, valid_accuracy)
 
     #===========================================================================

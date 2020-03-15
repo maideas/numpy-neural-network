@@ -98,7 +98,7 @@ class Optimizer:
 
         # calculate mini batch loss ...
         self.loss /= self.train_x_batch.shape[0]
-        self.accuracy /= self.train_x_batch.shape[0]
+        self.accuracy = 100.0 * self.accuracy / self.train_x_batch.shape[0]  # percent value
 
         # adjust the weights ...
         for layer in self.model.layers:
@@ -161,7 +161,7 @@ class Optimizer:
                 accuracy += 1.0
 
         loss /= x_batch.shape[0]
-        accuracy /= x_batch.shape[0]
+        accuracy = 100.0 * accuracy / x_batch.shape[0]  # percent value
 
         return loss, accuracy
 
