@@ -28,6 +28,10 @@ class Optimizer:
         self.loss = np.zeros(self.model.loss_layer.size)
         self.init()
 
+        self.train_x_batch = np.array([])
+        self.train_t_batch = np.array([])
+        self.train_y_batch = np.array([])
+
     def init(self):
         '''initializes optimizer specific model layer members'''
         pass
@@ -55,12 +59,13 @@ class Optimizer:
         '''
 
         # x_batch : network model input data batch
-        # y_batch : related network model target data batch
-        x_batch, y_batch = self.dataset.get_train_batch(batch_size)
+        # t_batch : related network model target data batch
+        train_x_batch, train_t_batch = self.dataset.get_train_batch(batch_size)
 
         # normalize network (input, output) training data ...
-        x_batch = self.dataset.normalize(x_batch, self.dataset.x_mean, self.dataset.x_variance)
-        y_batch = self.dataset.normalize(y_batch, self.dataset.y_mean, self.dataset.y_variance)
+        self.train_x_batch = self.dataset.normalize(train_x_batch, self.dataset.x_mean, self.dataset.x_variance)
+        self.train_t_batch = self.dataset.normalize(train_t_batch, self.dataset.y_mean, self.dataset.y_variance)
+        self.train_y_batch = np.zeros(self.train_t_batch.shape)
 
         # initialize gradients to zero ...
         self.zero_grad()
@@ -69,20 +74,21 @@ class Optimizer:
         self.accuracy = 0.0
 
         # pass mini batch data through the net ...
-        for n in np.arange(x_batch.shape[0]):
-            x = x_batch[n]
-            y = y_batch[n]
+        for n in np.arange(self.train_x_batch.shape[0]):
+            x = self.train_x_batch[n]
+            t = self.train_t_batch[n]
 
             # forward pass through all layers ...
             for layer in self.model.layers:
                 x = layer.forward(x)
                 #print("activation = {0}".format(x))
+            self.train_y_batch[n] = x
 
             # loss calculation which gives a gradient ...
-            self.loss += self.model.loss_layer.forward(x, y)
+            self.loss += self.model.loss_layer.forward(x, t)
             grad = self.model.loss_layer.backward()
 
-            if np.argmax(x) == np.argmax(y):
+            if np.argmax(x) == np.argmax(t):
                 self.accuracy += 1.0
 
             # backward pass through all layers ...
@@ -91,8 +97,8 @@ class Optimizer:
                 grad = layer.backward(grad)
 
         # calculate mini batch loss ...
-        self.loss /= x_batch.shape[0]
-        self.accuracy /= x_batch.shape[0]
+        self.loss /= self.train_x_batch.shape[0]
+        self.accuracy /= self.train_x_batch.shape[0]
 
         # adjust the weights ...
         for layer in self.model.layers:
@@ -103,14 +109,14 @@ class Optimizer:
 
         self.steps += 1
 
-    def predict(self, x_batch):
+    def predict(self, x_batch_in):
         '''
         network model forward path calculation (prediction) of a given x batch
         x_batch : network model input data
         returns : network model output data
         '''
         # normalize network input data ...
-        x_batch = self.dataset.normalize(x_batch, self.dataset.x_mean, self.dataset.x_variance)
+        x_batch = self.dataset.normalize(x_batch_in, self.dataset.x_mean, self.dataset.x_variance)
 
         y_batch = []
         for x in x_batch:
@@ -133,15 +139,15 @@ class Optimizer:
             c_batch.append(np.argmax(y))
         return np.array(c_batch)
 
-    def calculate_loss(self, x_batch, t_batch):
+    def calculate_loss(self, x_batch_in, t_batch_in):
         '''
         calculate loss of a batch of data
         x_batch : input data
         t_batch : target data
         returns : batch loss
         '''
-        x_batch = self.dataset.normalize(x_batch, self.dataset.x_mean, self.dataset.x_variance)
-        t_batch = self.dataset.normalize(t_batch, self.dataset.y_mean, self.dataset.y_variance)
+        x_batch = self.dataset.normalize(x_batch_in, self.dataset.x_mean, self.dataset.x_variance)
+        t_batch = self.dataset.normalize(t_batch_in, self.dataset.y_mean, self.dataset.y_variance)
         
         loss = np.zeros(self.model.loss_layer.size)
 
