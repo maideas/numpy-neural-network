@@ -5,14 +5,15 @@ class DataSet:
 
     def __init__(self):
         # zero mean, unit variance
-        self.x_mean = 0.0
-        self.x_variance = 1.0
-        self.y_mean = 0.0
-        self.y_variance = 1.0
+        self.x_mean     = np.array([0.0])
+        self.x_variance = np.array([1.0])
+        self.y_mean     = np.array([0.0])
+        self.y_variance = np.array([1.0])
 
-        # x and y data have to be initilized by derived class
+        # x and y data have to be initialized by derived class
         self.x_data = np.array([])
         self.y_data = np.array([])
+
 
     def prepare(self, train_fraction=0.7, normalize_x=True, normalize_y=True):
 
@@ -46,6 +47,7 @@ class DataSet:
         # initialize validation mini-batch size to complete validation data size ...
         self.validation_batch_size = self.num_validation_data
 
+
     def get_train_batch(self, batch_size=None):
         if not batch_size:
             batch_size = self.train_batch_size
@@ -60,12 +62,45 @@ class DataSet:
         idx = np.random.randint(self.num_validation_data, size=batch_size)
         return self.x_validation_data[idx], self.y_validation_data[idx]
 
+
     def get_mean_and_variance(self, data):
-        return np.mean(data), np.std(data)
+        # per-feature mean and variance over all data vectors ...
+        # ("feature" means data vector element)
+        mean = np.mean(data, axis=0)
+        variance = np.std(data, axis=0)
+        variance[np.square(variance) < 1e-6] = 1.0
+        return mean, variance
 
     def normalize(self, data, mean, variance):
         return (data - mean) / variance
 
     def denormalize(self, data, mean, variance):
         return (data * variance) + mean
+
+
+    def print_data_element(self, element):
+
+        if len(element.shape) == 1:
+            print("{} ".format(element))
+
+        if len(element.shape) == 2:
+            for s1 in np.arange(element.shape[0]):
+                print("{} ".format(element[s1]), end='')
+            print("")
+
+        if len(element.shape) > 2:
+            for s1 in np.arange(element.shape[0]):
+                for s2 in np.arange(element.shape[1]):
+                    print("{} ".format(element[s1, s2]), end='')
+                print("")
+
+    def print_data(self, x, y=None):
+
+        for n in np.arange(x.shape[0]):
+            print("== #{} x =======================================".format(n))
+            self.print_data_element(x[n])
+
+            if y is not None:
+                print("-- #{} y --".format(n))
+                self.print_data_element(y[n])
 
