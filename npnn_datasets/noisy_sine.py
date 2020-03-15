@@ -14,5 +14,8 @@ class NoisySine(DataSet):
         self.x_data = np.arange(x_min, x_max, x_step)
         self.y_data = np.sin(self.x_data) + np.random.normal(0.0, 0.1, self.x_data.shape)
 
+        self.x_data = self.x_data.reshape(-1, 1)
+        self.y_data = self.y_data.reshape(-1, 1)
+
         self.prepare(train_fraction, normalize_x=True, normalize_y=True)
 

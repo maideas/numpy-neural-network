@@ -32,7 +32,7 @@ plt.figure()
 ax1 = plt.subplot(211)
 ax2 = plt.subplot(212)
 
-loss_x = []
+episodes = []
 train_loss_y = []
 validation_loss_y = []
 
@@ -47,9 +47,9 @@ for episode in np.arange(400):
 
     # step the optimizer ...
     optimizer.step()
+    episodes.append(episode)
 
     # append the optimizer step train loss ...
-    loss_x.append(episode)
     tloss = np.mean(optimizer.loss)
     train_loss_y.append(tloss)
 
@@ -63,7 +63,7 @@ for episode in np.arange(400):
     validation_loss_y.append(vloss)
 
     # print the episode and loss values ...
-    print("episode = {0:5d}, tloss = {2:8.6f}, vloss = {2:8.6f}".format(episode, tloss, vloss))
+    print("episode = {0:5d}, tloss = {2:5.3f}, vloss = {2:5.3f}".format(episode, tloss, vloss))
 
     # print the train loss (blue) and validation loss (orange) ...
     ax2.cla()
@@ -71,7 +71,7 @@ for episode in np.arange(400):
     ax2.set_ylabel('loss')
     ax2.set_yscale('log')
     ax2.set_ylim((min(train_loss_y)/2.0, max(train_loss_y)*2.0))
-    ax2.plot(loss_x, train_loss_y, loss_x, validation_loss_y)
+    ax2.plot(episodes, train_loss_y, episodes, validation_loss_y)
 
     plt.draw()
     plt.savefig('png/episode{0:04d}.png'.format(episode))  # save png to create mp4 later on
