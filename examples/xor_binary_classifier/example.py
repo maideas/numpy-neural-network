@@ -24,7 +24,7 @@ model = npnn.network.Model([
 
 model.loss_layer = npnn.loss_layer.BinaryCrossEntropyLoss(1)
 
-optimizer = npnn.optimizer.Adam(model, alpha=1e-3)
+optimizer = npnn.optimizer.Adam(model, alpha=5e-3)
 
 optimizer.dataset = npnn_datasets.XORBinaryClassifier()
 
