@@ -14,11 +14,11 @@ matplotlib.rcParams['toolbar'] = 'None'
 ################################################################################
 
 model = npnn.network.Model([
-    npnn.FullyConn(2, 4),
+    npnn.Dense(2, 4),
     npnn.LeakyReLU(4),
-    npnn.FullyConn(4, 4),
+    npnn.Dense(4, 4),
     npnn.LeakyReLU(4),
-    npnn.FullyConn(4, 1),
+    npnn.Dense(4, 1),
     npnn.Sigmoid(1)
 ])
 
@@ -27,6 +27,9 @@ model.loss_layer = npnn.loss_layer.RMSLoss(1)
 optimizer = npnn.optimizer.Adam(model, alpha=2e-2)
 
 optimizer.dataset = npnn_datasets.XORFunction()
+
+# because of the small dataset, use all data every time for validation loss calculation ...
+optimizer.dataset.validation_batch_size = optimizer.dataset.num_validation_data
 
 ################################################################################
 
@@ -64,12 +67,10 @@ for episode in np.arange(300):
     train_loss_y.append(tloss)
 
     # calculate and append the validation loss ...
-    vloss = np.mean(
-        optimizer.calculate_loss(
-            optimizer.dataset.x_validation_data,
-            optimizer.dataset.y_validation_data
-        )[0]
-    )
+    x_validation_batch, t_validation_batch = optimizer.dataset.get_validation_batch()
+    y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
+
+    vloss = np.mean(optimizer.loss)
     validation_loss_y.append(vloss)
 
     # print the episode and loss values ...

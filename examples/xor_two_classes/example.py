@@ -14,11 +14,11 @@ matplotlib.rcParams['toolbar'] = 'None'
 ################################################################################
 
 model = npnn.network.Model([
-    npnn.FullyConn(2, 4),
+    npnn.Dense(2, 4),
     npnn.LeakyReLU(4),
-    npnn.FullyConn(4, 4),
+    npnn.Dense(4, 4),
     npnn.LeakyReLU(4),
-    npnn.FullyConn(4, 2),
+    npnn.Dense(4, 2),
     npnn.Softmax(2)
 ])
 
@@ -27,6 +27,9 @@ model.loss_layer = npnn.loss_layer.CrossEntropyLoss(2)
 optimizer = npnn.optimizer.Adam(model, alpha=1e-2)
 
 optimizer.dataset = npnn_datasets.XORTwoClasses()
+
+# because of the small dataset, use all data every time for validation loss calculation ...
+optimizer.dataset.validation_batch_size = optimizer.dataset.num_validation_data
 
 ################################################################################
 
@@ -57,10 +60,12 @@ for episode in np.arange(200):
     train_accuracy_y.append(taccuracy)
 
     # calculate and append the validation loss ...
-    vloss, vaccuracy = optimizer.calculate_loss(
-        optimizer.dataset.x_validation_data,
-        optimizer.dataset.y_validation_data
-    )
+    x_validation_batch, t_validation_batch = optimizer.dataset.get_validation_batch()
+    y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
+
+    vloss = optimizer.loss
+    vaccuracy = optimizer.accuracy
+
     validation_loss_y0.append(vloss[0])
     validation_loss_y1.append(vloss[1])
     validation_accuracy_y.append(vaccuracy)

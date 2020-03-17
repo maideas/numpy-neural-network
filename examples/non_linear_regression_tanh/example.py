@@ -14,21 +14,21 @@ matplotlib.rcParams['toolbar'] = 'None'
 ################################################################################
 
 model = npnn.network.Model([
-    npnn.FullyConn(1, 10),
+    npnn.Dense(1, 10),
     npnn.Tanh(10),
-    npnn.FullyConn(10, 20),
+    npnn.Dense(10, 20),
     npnn.Tanh(20),
-    npnn.FullyConn(20, 40),
+    npnn.Dense(20, 40),
     npnn.Tanh(40),
-    npnn.FullyConn(40, 80),
+    npnn.Dense(40, 80),
     npnn.Tanh(80),
-    npnn.FullyConn(80, 40),
+    npnn.Dense(80, 40),
     npnn.Tanh(40),
-    npnn.FullyConn(40, 20),
+    npnn.Dense(40, 20),
     npnn.Tanh(20),
-    npnn.FullyConn(20, 10),
+    npnn.Dense(20, 10),
     npnn.Tanh(10),
-    npnn.FullyConn(10, 1),
+    npnn.Dense(10, 1),
     npnn.Linear(1)
 ])
 
@@ -37,6 +37,9 @@ model.loss_layer = npnn.loss_layer.RMSLoss(1)
 optimizer = npnn.optimizer.Adam(model, alpha=5e-4)  # Tanh
 
 optimizer.dataset = npnn_datasets.NoisySine()
+
+# because of the small dataset, use all data every time for validation loss calculation ...
+optimizer.dataset.validation_batch_size = optimizer.dataset.num_validation_data
 
 ################################################################################
 
@@ -68,11 +71,10 @@ for episode in np.arange(1000):
     train_loss_y.append(tloss)
 
     # calculate and append the validation loss ...
-    vloss, _ = optimizer.calculate_loss(
-        optimizer.dataset.x_validation_data,
-        optimizer.dataset.y_validation_data
-    )
-    vloss = np.mean(vloss)
+    x_validation_batch, t_validation_batch = optimizer.dataset.get_validation_batch()
+    y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
+
+    vloss = np.mean(optimizer.loss)
     validation_loss_y.append(vloss)
 
     # print the episode and loss values ...

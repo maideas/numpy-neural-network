@@ -14,21 +14,24 @@ matplotlib.rcParams['toolbar'] = 'None'
 ################################################################################
 
 model = npnn.network.Model([
-    npnn.Conv2d(shape_in=(10, 10, 1), shape_out=(8, 8, 8), kernel_size=3, stride=1),
+    npnn.Conv2D(shape_in=(10, 10, 1), shape_out=(8, 8, 8), kernel_size=3, stride=1),
     npnn.LeakyReLU(8*8*8),
     npnn.MaxPool(shape_in=(8, 8, 8), shape_out=(4, 4, 8), kernel_size=2),
-    npnn.Conv2d(shape_in=(4, 4, 8), shape_out=(2, 2, 6), kernel_size=3, stride=1),
+    npnn.Conv2D(shape_in=(4, 4, 8), shape_out=(2, 2, 6), kernel_size=3, stride=1),
     npnn.LeakyReLU(2*2*6),
     npnn.MaxPool(shape_in=(2, 2, 6), shape_out=(1, 1, 6), kernel_size=2),
-    npnn.FullyConn(6, 4),
+    npnn.Dense(6, 4),
     npnn.Softmax(4)
 ])
 
 model.loss_layer = npnn.loss_layer.CrossEntropyLoss(4)
 
-optimizer = npnn.optimizer.Adam(model, alpha=1e-2)
+optimizer = npnn.optimizer.Adam(model, alpha=1e-3)
 
 optimizer.dataset = npnn_datasets.FourImgClasses()
+
+# because of the small dataset, use all data every time for validation loss calculation ...
+optimizer.dataset.validation_batch_size = optimizer.dataset.num_validation_data
 
 ################################################################################
 
@@ -80,11 +83,15 @@ for episode in np.arange(2500):
     # complete dataset loss and accuracy
     #===========================================================================
 
-    tloss, taccuracy = optimizer.calculate_loss(optimizer.dataset.x_train_data, optimizer.dataset.y_train_data)
+    optimizer.predict(optimizer.dataset.x_train_data, optimizer.dataset.y_train_data)
+    tloss = optimizer.loss
+    taccuracy = optimizer.accuracy
     train_loss.append(np.mean(tloss))
     train_accuracy.append(taccuracy)
 
-    vloss, vaccuracy = optimizer.calculate_loss(optimizer.dataset.x_validation_data, optimizer.dataset.y_validation_data)
+    y_predicted_data = optimizer.predict(optimizer.dataset.x_validation_data, optimizer.dataset.y_validation_data)
+    vloss = optimizer.loss
+    vaccuracy = optimizer.accuracy
     valid_loss.append(np.mean(vloss))
     valid_accuracy.append(vaccuracy)
 
@@ -110,38 +117,38 @@ for episode in np.arange(2500):
     # batch network output plots
     #===========================================================================
 
-    k = np.arange(optimizer.train_x_batch.shape[0])
+    k = np.arange(optimizer.dataset.num_validation_data)
 
     ax1b.cla()
     ax1b.set_ylabel('mini-batch class 0')
     ax1b.set_ylim(-0.1, 1.1)
-    ax1b.scatter(k, optimizer.train_t_batch[:,0], s=10, c='tab:green')
-    ax1b.scatter(k, optimizer.train_y_batch[:,0], s=10, c='tab:orange')
+    ax1b.scatter(k, optimizer.dataset.y_validation_data[:,0], s=10, c='tab:green')
+    ax1b.scatter(k, y_predicted_data[:,0], s=10, c='tab:orange')
 
     ax2b.cla()
     ax2b.set_ylabel('mini-batch class 1')
     ax2b.set_ylim(-0.1, 1.1)
-    ax2b.scatter(k, optimizer.train_t_batch[:,1], s=10, c='tab:green')
-    ax2b.scatter(k, optimizer.train_y_batch[:,1], s=10, c='tab:orange')
+    ax2b.scatter(k, optimizer.dataset.y_validation_data[:,1], s=10, c='tab:green')
+    ax2b.scatter(k, y_predicted_data[:,1], s=10, c='tab:orange')
 
     ax3b.cla()
     ax3b.set_ylabel('mini-batch class 2')
     ax3b.set_ylim(-0.1, 1.1)
-    ax3b.scatter(k, optimizer.train_t_batch[:,2], s=10, c='tab:green')
-    ax3b.scatter(k, optimizer.train_y_batch[:,2], s=10, c='tab:orange')
+    ax3b.scatter(k, optimizer.dataset.y_validation_data[:,2], s=10, c='tab:green')
+    ax3b.scatter(k, y_predicted_data[:,2], s=10, c='tab:orange')
 
     ax4b.cla()
     ax4b.set_ylabel('mini-batch class 3')
     ax4b.set_ylim(-0.1, 1.1)
-    ax4b.scatter(k, optimizer.train_t_batch[:,3], s=10, c='tab:green')
-    ax4b.scatter(k, optimizer.train_y_batch[:,3], s=10, c='tab:orange')
+    ax4b.scatter(k, optimizer.dataset.y_validation_data[:,3], s=10, c='tab:green')
+    ax4b.scatter(k, y_predicted_data[:,3], s=10, c='tab:orange')
 
     #===========================================================================
     # draw and save PNG to generate video files later on
     #===========================================================================
 
     plt.draw()
-    fig1.savefig('png1/episode{0:04d}.png'.format(episode))
+    fig1.savefig('png/episode{0:04d}.png'.format(episode))
     fig2.savefig('png2/episode{0:04d}.png'.format(episode))
     plt.pause(0.001)
 
