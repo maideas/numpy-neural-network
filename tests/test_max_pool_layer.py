@@ -96,9 +96,9 @@ def ref_backward_gx(x, gy, kernel_size):
     return gx
 
 
-class TestConv2D(unittest.TestCase):
+class TestMaxPool(unittest.TestCase):
 
-    def test_conv2d_layer(self):
+    def test_max_pool_layer(self):
 
         # loop over different random layer configurations ...
         for episode in np.arange(200):

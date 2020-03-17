@@ -4,7 +4,7 @@ sys.path.append("../")
 
 import unittest
 import numpy as np
-from numpy_neural_network import FullyConn
+from numpy_neural_network import Dense
 
 
 def ref_forward(x, w, size_in, size_out):
@@ -116,7 +116,7 @@ class TestDense(unittest.TestCase):
 
             print("size_in={}, size_out={}".format(size_in, size_out))
 
-            layer = FullyConn(
+            layer = Dense(
                 size_in  = size_in,
                 size_out = size_out
             )
