@@ -1,7 +1,7 @@
 
 import numpy as np
 
-class Conv2d:
+class Conv2D:
     '''2D convolutional layer'''
 
     def __init__(self, shape_in, shape_out, kernel_size, stride=1, groups=1):
@@ -64,7 +64,7 @@ class Conv2d:
         returns : layer output data
         '''
         assert x.shape == self.shape_in, \
-            "Conv2d: forward() data shape ({0}) has ".format(x.shape) + \
+            "Conv2D: forward() data shape ({0}) has ".format(x.shape) + \
             "to be equal to layer shape_in ({0}) !".format(self.shape_in)
 
         self.x = x.copy()
@@ -89,7 +89,7 @@ class Conv2d:
         returns : layer input gradients
         '''
         assert grad_y.shape == self.shape_out, \
-            "Conv2d: backward() gradient shape ({0}) has ".format(grad_y.shape) + \
+            "Conv2D: backward() gradient shape ({0}) has ".format(grad_y.shape) + \
             "to be equal to layer shape_out ({0}) !".format(self.shape_out)
 
         for x_index, y_index, w_index in zip(self.x_indices, self.y_indices, self.w_indices):
@@ -131,36 +131,88 @@ class Conv2d:
             )
             self.w[group][:, -1] = 0.0  # ... set the bias weights to 0
 
+    def step_init(self, is_training=False):
+        '''
+        this method may initialize some layer internals before each optimizer mini-batch step
+        '''
+        pass
+
     def check(self):
         '''check layer configuration consistency'''
 
         assert self.shape_in[2] % self.groups == 0, \
-            "Conv2d: layer shape_in[2] ({0}) has ".format(self.shape_in[2]) + \
+            "Conv2D: layer shape_in[2] ({0}) has ".format(self.shape_in[2]) + \
             "to be a multiple of groups ({0}) !".format(self.groups)
         assert self.shape_out[2] % self.groups == 0, \
-            "Conv2d: layer shape_out[2] ({0}) has ".format(self.shape_out[2]) + \
+            "Conv2D: layer shape_out[2] ({0}) has ".format(self.shape_out[2]) + \
             "to be a multiple of groups ({0}) !".format(self.groups)
 
         assert self.shape_in[0] >= self.kernel_size, \
-            "Conv2d: layer shape_in[0] ({0}) has ".format(self.shape_in[0]) + \
+            "Conv2D: layer shape_in[0] ({0}) has ".format(self.shape_in[0]) + \
             "to be equal or larger than kernel_size ({0}) !".format(self.kernel_size)
         assert self.shape_in[1] >= self.kernel_size, \
-            "Conv2d: layer shape_in[1] ({0}) has ".format(self.shape_in[1]) + \
+            "Conv2D: layer shape_in[1] ({0}) has ".format(self.shape_in[1]) + \
             "to be equal or larger than kernel_size ({0}) !".format(self.kernel_size)
 
         assert (self.shape_in[0] - self.kernel_size) % self.stride == 0, \
-            "Conv2d: layer shape_in[0] ({0}) ".format(self.shape_in[0]) + \
+            "Conv2D: layer shape_in[0] ({0}) ".format(self.shape_in[0]) + \
             "minus kernel_size ({0}) has ".format(self.kernel_size) + \
             "to be a multiple of stride ({0}) !".format(self.stride)
         assert (self.shape_in[1] - self.kernel_size) % self.stride == 0, \
-            "Conv2d: layer shape_in[1] ({0}) ".format(self.shape_in[1]) + \
+            "Conv2D: layer shape_in[1] ({0}) ".format(self.shape_in[1]) + \
             "minus kernel_size ({0}) has ".format(self.kernel_size) + \
             "to be a multiple of stride ({0}) !".format(self.stride)
 
         assert self.shape_out[0] == self.steps_h, \
-            "Conv2d: layer shape_out[0] ({0}) has ".format(self.shape_out[0]) + \
+            "Conv2D: layer shape_out[0] ({0}) has ".format(self.shape_out[0]) + \
             "to be equal to layer internal steps_h ({0}) !".format(self.steps_h)
         assert self.shape_out[1] == self.steps_w, \
-            "Conv2d: layer shape_out[1] ({0}) has ".format(self.shape_out[1]) + \
+            "Conv2D: layer shape_out[1] ({0}) has ".format(self.shape_out[1]) + \
             "to be equal to layer internal steps_w ({0}) !".format(self.steps_w)
+
+
+class Pad2D:
+    '''2D padding layer'''
+
+    def __init__(self, shape_in, pad_axis0=0, pad_axis1=0, pad_value=0):
+        self.shape_in = shape_in
+        self.pad_axis0 = pad_axis0
+        self.pad_axis1 = pad_axis1
+
+        self.w = None
+        self.y = np.full((
+            shape_in[0] + 2 * pad_axis0,
+            shape_in[1] + 2 * pad_axis1,
+            shape_in[2]
+        ), pad_value)
+
+    def forward(self, x):
+        '''
+        data forward path
+        '''
+        self.y[
+            self.pad_axis0:self.pad_axis0 + self.shape_in[0],
+            self.pad_axis1:self.pad_axis1 + self.shape_in[1],
+            :
+        ] = x
+        return self.y
+
+    def backward(self, grad_y):
+        '''
+        gradients backward path
+        '''
+        return grad_y[
+            self.pad_axis0:self.pad_axis0 + self.shape_in[0],
+            self.pad_axis1:self.pad_axis1 + self.shape_in[1],
+            :
+        ]
+
+    def zero_grad(self):
+        pass
+
+    def step_init(self, is_training=False):
+        '''
+        this method may initialize some layer internals before each optimizer mini-batch step
+        '''
+        pass
 
