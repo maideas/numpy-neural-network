@@ -82,6 +82,12 @@ class MaxPool:
         '''set all gradient values to zero'''
         self.grad_x = np.zeros(self.grad_x.shape)
 
+    def step_init(self, is_training=False):
+        '''
+        this method may initialize some layer internals before each optimizer mini-batch step
+        '''
+        pass
+
     def check(self):
         '''check layer configuration consistency'''
 
@@ -100,9 +106,9 @@ class MaxPool:
             "to be equal or larger than kernel_size ({0}) !".format(self.kernel_size)
 
         assert self.shape_out[0] == self.steps_h, \
-            "Conv2d: layer shape_out[0] ({0}) has ".format(self.shape_out[0]) + \
+            "MaxPool: layer shape_out[0] ({0}) has ".format(self.shape_out[0]) + \
             "to be equal to layer internal steps_h ({0}) !".format(self.steps_h)
         assert self.shape_out[1] == self.steps_w, \
-            "Conv2d: layer shape_out[1] ({0}) has ".format(self.shape_out[1]) + \
+            "MaxPool: layer shape_out[1] ({0}) has ".format(self.shape_out[1]) + \
             "to be equal to layer internal steps_w ({0}) !".format(self.steps_w)
 

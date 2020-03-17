@@ -17,6 +17,12 @@ class FuncLayer:
         '''set all gradient values to zero (preparation for incremental gradient calculation)'''
         self.grad_x = np.zeros(self.size)
 
+    def step_init(self, is_training=False):
+        '''
+        this method may initialize some layer internals before each optimizer mini-batch step
+        '''
+        pass
+
 
 class Linear(FuncLayer):
     '''linear activation function'''
