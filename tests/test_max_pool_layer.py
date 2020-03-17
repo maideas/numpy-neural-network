@@ -7,12 +7,11 @@ import numpy as np
 from numpy_neural_network import MaxPool
 
 
-def ref_forward(x, kernel_size):
+def ref_forward(x, kernel_size, stride):
 
     # calculation of some useful layer configuration values ...
-    stride  = kernel_size
-    steps_h = int(x.shape[0] / stride)
-    steps_w = int(x.shape[1] / stride)
+    steps_h = int(1 + (x.shape[0] - kernel_size) / stride)
+    steps_w = int(1 + (x.shape[1] - kernel_size) / stride)
 
     h_out = steps_h
     w_out = steps_w
@@ -46,15 +45,14 @@ def ref_forward(x, kernel_size):
     return y
 
 
-def ref_backward_gx(x, gy, kernel_size):
+def ref_backward_gx(x, gy, kernel_size, stride):
 
     # calculation of some useful layer configuration values ...
-    stride  = kernel_size
     steps_h = gy.shape[0]
     steps_w = gy.shape[1]
 
-    h_in = steps_h * stride
-    w_in = steps_w * stride
+    h_in = (steps_h - 1) * stride + kernel_size
+    w_in = (steps_w - 1) * stride + kernel_size
     d_in = gy.shape[2]
 
     h_out = steps_h
@@ -91,7 +89,7 @@ def ref_backward_gx(x, gy, kernel_size):
 
                 # input gradient value update ...
                 gy_val = gy[y_h_index, y_w_index, d_index]
-                gx[max_x_h_index, max_x_w_index, d_index] = gy_val
+                gx[max_x_h_index, max_x_w_index, d_index] += gy_val
 
     return gx
 
@@ -106,6 +104,7 @@ class TestMaxPool(unittest.TestCase):
             if episode == 0:
                 #============================================
                 kernel_size  = 1  # kernel INPUT height and width
+                stride       = 1
                 num_channels = 1
                 steps_h      = 1
                 steps_w      = 1
@@ -114,6 +113,7 @@ class TestMaxPool(unittest.TestCase):
             if episode == 1:
                 #============================================
                 kernel_size  = 2  # kernel INPUT height and width
+                stride       = 2
                 num_channels = 1
                 steps_h      = 1
                 steps_w      = 1
@@ -122,6 +122,7 @@ class TestMaxPool(unittest.TestCase):
             if episode == 2:
                 #============================================
                 kernel_size  = 2  # kernel INPUT height and width
+                stride       = 1
                 num_channels = 1
                 steps_h      = 2
                 steps_w      = 2
@@ -130,6 +131,7 @@ class TestMaxPool(unittest.TestCase):
             if episode == 3:
                 #============================================
                 kernel_size  = 2  # kernel INPUT height and width
+                stride       = 1
                 num_channels = 2
                 steps_h      = 2
                 steps_w      = 2
@@ -138,15 +140,14 @@ class TestMaxPool(unittest.TestCase):
             if episode > 3:
                 #============================================
                 kernel_size  = np.random.randint(1,  5)  # kernel INPUT height and width
+                stride       = np.random.randint(1,  5)
                 num_channels = np.random.randint(1, 10)
                 steps_h      = np.random.randint(1, 10)
                 steps_w      = np.random.randint(1, 10)
                 #============================================
 
-            stride = kernel_size
-
-            h_in = steps_h * stride
-            w_in = steps_w * stride
+            h_in = (steps_h - 1) * stride + kernel_size
+            w_in = (steps_w - 1) * stride + kernel_size
             d_in = num_channels
 
             h_out = steps_h
@@ -159,14 +160,15 @@ class TestMaxPool(unittest.TestCase):
             #================================================
             # network layer object to be tested ...
 
-            print("shape_in={}, shape_out={}, steps_h={}, steps_w={}, kernel_size={}, num_channels={}".format(
-                shape_in, shape_out, steps_h, steps_w, kernel_size, num_channels
+            print("shape_in={}, shape_out={}, steps_h={}, steps_w={}, kernel_size={}, stride={}, num_channels={}".format(
+                shape_in, shape_out, steps_h, steps_w, kernel_size, stride, num_channels
             ))
 
             layer = MaxPool(
                 shape_in    = shape_in,
                 shape_out   = shape_out,
-                kernel_size = kernel_size
+                kernel_size = kernel_size,
+                stride      = stride
             )
 
             #================================================
@@ -190,8 +192,8 @@ class TestMaxPool(unittest.TestCase):
                     gy = np.random.normal(0.0, 1.0, shape_out)
 
                 # reference calculation ...
-                y_ref  = ref_forward     (x,     kernel_size)
-                gx_ref = ref_backward_gx (x, gy, kernel_size)
+                y_ref  = ref_forward     (x,     kernel_size, stride)
+                gx_ref = ref_backward_gx (x, gy, kernel_size, stride)
 
                 # layer forward pass ...
                 y = layer.forward(x)

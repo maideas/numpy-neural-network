@@ -4,18 +4,21 @@ import numpy as np
 class MaxPool:
     '''max value pooling layer'''
 
-    def __init__(self, shape_in, shape_out, kernel_size):
+    def __init__(self, shape_in, shape_out, kernel_size, stride=None):
         self.shape_in = shape_in
         self.shape_out = shape_out
-        self.kernel_size = kernel_size  # = stride
+        self.kernel_size = kernel_size
+        self.stride = stride
+        if self.stride is None:
+            self.stride = kernel_size
 
         self.w = None
         self.x = np.zeros(self.shape_in)  # layer input data
         self.y = np.zeros(self.shape_out)  # layer output data
         self.grad_x = np.zeros(self.shape_in)  # layer input gradients
 
-        self.steps_h = self.shape_out[0]
-        self.steps_w = self.shape_out[1]
+        self.steps_h = 1 + int(np.trunc((self.shape_in[0] - self.kernel_size) / self.stride))
+        self.steps_w = 1 + int(np.trunc((self.shape_in[1] - self.kernel_size) / self.stride))
 
         self.check()
 
@@ -25,8 +28,8 @@ class MaxPool:
             for sh in np.arange(self.steps_h):
                 for sw in np.arange(self.steps_w):
                     self.x_indices.append((
-                        slice(sh * self.kernel_size, sh * self.kernel_size + self.kernel_size),
-                        slice(sw * self.kernel_size, sw * self.kernel_size + self.kernel_size),
+                        slice(sh * self.stride, sh * self.stride + self.kernel_size),
+                        slice(sw * self.stride, sw * self.stride + self.kernel_size),
                         ch
                     ))
                     self.y_indices.append((
@@ -45,7 +48,7 @@ class MaxPool:
             "to be equal to layer shape_in ({0}) !".format(self.shape_in)
 
         self.x = x.copy()
-        self.y = np.full(self.shape_out, np.nan)
+        self.y = np.zeros(self.shape_out)
 
         for x_index, y_index in zip(self.x_indices, self.y_indices):
 
@@ -91,12 +94,14 @@ class MaxPool:
     def check(self):
         '''check layer configuration consistency'''
 
-        assert self.shape_in[0] % self.kernel_size == 0, \
-            "MaxPool: data shape_in[0] ({0}) ".format(self.shape_in[0]) + \
-            "has to be a multiple of kernel_size ({0}) !".format(self.kernel_size)
-        assert self.shape_in[1] % self.kernel_size == 0, \
-            "MaxPool: data shape_in[1] ({0}) ".format(self.shape_in[1]) + \
-            "has to be a multiple of kernel_size ({0}) !".format(self.kernel_size)
+        assert (self.shape_in[0] - self.kernel_size) % self.stride == 0, \
+            "MaxPool: layer shape_in[0] ({0}) ".format(self.shape_in[0]) + \
+            "minus kernel_size ({0}) has ".format(self.kernel_size) + \
+            "to be a multiple of stride ({0}) !".format(self.stride)
+        assert (self.shape_in[1] - self.kernel_size) % self.stride == 0, \
+            "MaxPool: layer shape_in[1] ({0}) ".format(self.shape_in[1]) + \
+            "minus kernel_size ({0}) has ".format(self.kernel_size) + \
+            "to be a multiple of stride ({0}) !".format(self.stride)
 
         assert self.shape_in[0] >= self.kernel_size, \
             "MaxPool: layer shape_in[0] ({0}) has ".format(self.shape_in[0]) + \
