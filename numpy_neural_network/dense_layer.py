@@ -1,8 +1,8 @@
 
 import numpy as np
 
-class FullyConn:
-    '''fully connected layer'''
+class Dense:
+    '''dense (fully) connected layer'''
 
     def __init__(self, size_in, size_out):
         self.size_in = size_in + 1  # plus bias node
@@ -61,4 +61,10 @@ class FullyConn:
         stddev = np.sqrt(2.45 / (self.size_in + self.size_out))
         self.w[:,:-1] = np.random.normal(0.0, stddev, (self.size_out, self.size_in - 1))
         self.w[:, -1] = 0.0  # ... set the bias weights to 0
+
+    def step_init(self, is_training=False):
+        '''
+        this method may initialize some layer internals before each optimizer mini-batch step
+        '''
+        pass
 
