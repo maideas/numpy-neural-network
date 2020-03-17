@@ -112,3 +112,7 @@ class MaxPool:
             "MaxPool: layer shape_out[1] ({0}) has ".format(self.shape_out[1]) + \
             "to be equal to layer internal steps_w ({0}) !".format(self.steps_w)
 
+        assert self.shape_out[2] == self.shape_in[2], \
+            "MaxPool: data shape_out[2] ({0}) ".format(self.shape_out[2]) + \
+            "has to be the same as shape_in[2] ({0}) !".format(self.shape_in[2])
+
