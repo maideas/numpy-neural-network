@@ -44,8 +44,9 @@ class DataSet:
         # reason we initialize its size to the square root of train data size ...
         self.train_batch_size = int(np.trunc(np.sqrt(self.num_train_data)))
 
-        # initialize validation mini-batch size to complete validation data size ...
-        self.validation_batch_size = self.num_validation_data
+        # initialize validation mini-batch size minimum of complete validation
+        # data and training batch size ...
+        self.validation_batch_size = min(self.num_validation_data, self.train_batch_size)
 
 
     def get_train_batch(self, batch_size=None):
