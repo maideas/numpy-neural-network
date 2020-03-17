@@ -42,8 +42,8 @@ mp4:
 encode: webm ogv mp4
 
 move:
-	mv $(NAME).webm ../../docs
-	mv $(NAME).ogv  ../../docs
-	mv $(NAME).mp4  ../../docs
-	mv $(NAME).png  ../../docs
+	mv $(NAME).webm ../../../maideas.github.io/assets/videos/
+	mv $(NAME).ogv  ../../../maideas.github.io/assets/videos/
+	mv $(NAME).mp4  ../../../maideas.github.io/assets/videos/
+	mv $(NAME).png  ../../../maideas.github.io/assets/videos/
 
