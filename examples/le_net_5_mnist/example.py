@@ -134,7 +134,7 @@ for episode in np.arange(2500):
 
     plt.draw()
     fig1.savefig('png/episode{0:04d}.png'.format(episode))
-    fig2.savefig('png2/episode{0:04d}.png'.format(episode))
+    fig2.savefig('png_2/episode{0:04d}.png'.format(episode))
     plt.pause(0.001)
 
 input("Press Enter to close ...")
