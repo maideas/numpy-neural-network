@@ -5,23 +5,41 @@
 # to extract frame 1 as PNG use:
 # ffmpeg -i foo.webm -vframes 1 -f image2 -y foo.png
 
-NAME = $(shell basename `pwd`)
+ifeq ($(NAME_POSTFIX),)
+  NAME = $(shell basename `pwd`)
+else
+  NAME = $(shell basename `pwd`)$(NAME_POSTFIX)
+endif
+
+ifeq ($(PNG_DIR),)
+  PNG_DIR = png
+endif
+
+WEBM_FLAGS = -codec:v libvpx-vp9 $(SIZE_FLAGS) -b:v 2M
+OGV_FLAGS  = -codec:v libtheora  $(SIZE_FLAGS) -qscale:v 3 -codec:a libvorbis -qscale:a 3 -f ogv
+MP4_FLAGS  = -codec:v libx264    $(SIZE_FLAGS) -crf 25
 
 all: example image1 encode move
 
 example:
-	-rm -rf png
-	mkdir png
+	-rm -rf $(PNG_DIR)
+	mkdir $(PNG_DIR)
 	./example.py
 
 image1:
-	cp `ls -1tr png/episode*.png | tail -n 1` `ls -1tr png/episode*.png | head -n 1`
-	cp `ls -1tr png/episode*.png | tail -n 1` $(NAME).png
+	cp `ls -1 $(PNG_DIR)/episode*.png | sort -n | tail -n 1` `ls -1 $(PNG_DIR)/episode*.png | sort -n | head -n 1`
+	cp `ls -1 $(PNG_DIR)/episode*.png | sort -n | tail -n 1` $(NAME).png
 
-encode:
-	ffmpeg -i png/episode%04d.png -codec:v libvpx-vp9 -b:v 2M $(NAME).webm
-	ffmpeg -i png/episode%04d.png -codec:v libtheora -qscale:v 3 -codec:a libvorbis -qscale:a 3 -f ogv $(NAME).ogv
-	ffmpeg -i png/episode%04d.png -codec:v libx264 -vf "format=yuv420p" -crf 25 $(NAME).mp4
+webm:
+	ffmpeg -i $(PNG_DIR)/episode%04d.png $(WEBM_FLAGS) $(NAME).webm
+
+ogv:
+	ffmpeg -i $(PNG_DIR)/episode%04d.png $(OGV_FLAGS)  $(NAME).ogv
+
+mp4:
+	ffmpeg -i $(PNG_DIR)/episode%04d.png $(MP4_FLAGS)  $(NAME).mp4
+
+encode: webm ogv mp4
 
 move:
 	mv $(NAME).webm ../../docs
