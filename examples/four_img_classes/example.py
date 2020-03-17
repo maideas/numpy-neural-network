@@ -14,19 +14,24 @@ matplotlib.rcParams['toolbar'] = 'None'
 ################################################################################
 
 model = npnn.network.Model([
-    npnn.Conv2D(shape_in=(10, 10, 1), shape_out=(8, 8, 8), kernel_size=3, stride=1),
-    npnn.LeakyReLU(8*8*8),
-    npnn.MaxPool(shape_in=(8, 8, 8), shape_out=(4, 4, 8), kernel_size=2),
-    npnn.Conv2D(shape_in=(4, 4, 8), shape_out=(2, 2, 6), kernel_size=3, stride=1),
-    npnn.LeakyReLU(2*2*6),
-    npnn.MaxPool(shape_in=(2, 2, 6), shape_out=(1, 1, 6), kernel_size=2),
-    npnn.Dense(6, 4),
+    npnn.Pad2D(shape_in=(10, 10, 1), pad_axis0=2, pad_axis1=2),
+    npnn.Conv2D(shape_in=(14, 14, 1), shape_out=(10, 10, 6), kernel_size=5, stride=1),
+    npnn.LeakyReLU(10 * 10 * 6),
+
+    npnn.MaxPool(shape_in=(10, 10, 6), shape_out=(5, 5, 6), kernel_size=2),
+    npnn.Conv2D(shape_in=(5, 5, 6), shape_out=(2, 2, 10), kernel_size=3, stride=2),
+    npnn.LeakyReLU(2 * 2 * 10),
+
+    npnn.MaxPool(shape_in=(2, 2, 10), shape_out=(1, 1, 10), kernel_size=2),
+    npnn.LeakyReLU(1 * 1 * 10),
+
+    npnn.Dense(10, 4),
     npnn.Softmax(4)
 ])
 
 model.loss_layer = npnn.loss_layer.CrossEntropyLoss(4)
 
-optimizer = npnn.optimizer.Adam(model, alpha=1e-3)
+optimizer = npnn.optimizer.Adam(model, alpha=1e-2)
 
 optimizer.dataset = npnn_datasets.FourImgClasses()
 
