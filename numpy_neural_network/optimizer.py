@@ -26,11 +26,13 @@ class Optimizer:
 
         self.steps = 1
         self.loss = np.zeros(self.model.loss_layer.size)
-        self.init()
+        self.accuracy = 0.0
 
         self.train_x_batch = np.array([])
         self.train_t_batch = np.array([])
         self.train_y_batch = np.array([])
+
+        self.init()
 
     def init(self):
         '''initializes optimizer specific model layer members'''
@@ -51,7 +53,16 @@ class Optimizer:
         default algorithm : vanilla gradient descent
         '''
         layer.w += -self.alpha * layer.grad_w
-        #print("weights = {0}".format(layer.w))
+
+    def accuracy_increment(self, x, t):
+        if self.model.loss_layer.__class__.__name__ == "CrossEntropyLoss":
+            # softmax + cross entropy loss accuracy ...
+            if np.argmax(x) == np.argmax(t):
+                return 1.0
+        if self.model.loss_layer.__class__.__name__ == "BinaryCrossEntropyLoss":
+            # sigmoid + binary cross entropy accuracy ...
+            return np.array((x > 0.5) == (t > 0.5)).astype(int) / t.shape[0]
+        return 0.0
 
     def step(self, batch_size=None):
         '''
@@ -69,6 +80,10 @@ class Optimizer:
 
         # initialize gradients to zero ...
         self.zero_grad()
+
+        # switch layers to training state ...
+        for layer in self.model.layers:
+            layer.step_init(is_training=True)
 
         self.loss = np.zeros(self.model.loss_layer.size)
         self.accuracy = 0.0
@@ -88,8 +103,7 @@ class Optimizer:
             self.loss += self.model.loss_layer.forward(x, t)
             grad = self.model.loss_layer.backward()
 
-            if np.argmax(x) == np.argmax(t):
-                self.accuracy += 1.0
+            self.accuracy += self.accuracy_increment(x, t)
 
             # backward pass through all layers ...
             for layer in self.model.layers[::-1]:
@@ -98,7 +112,7 @@ class Optimizer:
 
         # calculate mini batch loss ...
         self.loss /= self.train_x_batch.shape[0]
-        self.accuracy = 100.0 * self.accuracy / self.train_x_batch.shape[0]  # percent value
+        self.accuracy = 100.0 * self.accuracy / self.train_x_batch.shape[0]  # percentage value
 
         # adjust the weights ...
         for layer in self.model.layers:
@@ -107,22 +121,46 @@ class Optimizer:
                 layer.w += self.weight_penalty(layer.w)
                 #print("weights = {0}".format(layer.w))
 
+        # switch layers back to non-training state ...
+        for layer in self.model.layers:
+            layer.step_init(is_training=False)
+
         self.steps += 1
 
-    def predict(self, x_batch_in):
+    def predict(self, x_batch_in, t_batch_in=None):
         '''
         network model forward path calculation (prediction) of a given x batch
         x_batch : network model input data
+        t_batch : optional target data, which can be used for loss and accuracy calculation
         returns : network model output data
         '''
         # normalize network input data ...
         x_batch = self.dataset.normalize(x_batch_in, self.dataset.x_mean, self.dataset.x_variance)
-
         y_batch = []
-        for x in x_batch:
-            for layer in self.model.layers:
-                x = layer.forward(x)
-            y_batch.append(x)
+
+        if t_batch_in is None:
+            for x in x_batch:
+                for layer in self.model.layers:
+                    x = layer.forward(x)
+                y_batch.append(x)
+
+        else:
+            # normalize target data ...
+            t_batch = self.dataset.normalize(t_batch_in, self.dataset.y_mean, self.dataset.y_variance)
+
+            self.loss = np.zeros(self.model.loss_layer.size)
+            self.accuracy = 0.0
+
+            for x, t in zip(x_batch, t_batch):
+                for layer in self.model.layers:
+                    x = layer.forward(x)
+                y_batch.append(x)
+                
+                self.loss += self.model.loss_layer.forward(x, t)
+                self.accuracy += self.accuracy_increment(x, t)
+         
+            self.loss /= x_batch.shape[0]
+            self.accuracy = 100.0 * self.accuracy / x_batch.shape[0]  # percentage value
 
         # denormalize network output data ...
         return self.dataset.denormalize(np.array(y_batch), self.dataset.y_mean, self.dataset.y_variance)
@@ -138,32 +176,6 @@ class Optimizer:
         for y in y_batch:
             c_batch.append(np.argmax(y))
         return np.array(c_batch)
-
-    def calculate_loss(self, x_batch_in, t_batch_in):
-        '''
-        calculate loss of a batch of data
-        x_batch : input data
-        t_batch : target data
-        returns : batch loss
-        '''
-        x_batch = self.dataset.normalize(x_batch_in, self.dataset.x_mean, self.dataset.x_variance)
-        t_batch = self.dataset.normalize(t_batch_in, self.dataset.y_mean, self.dataset.y_variance)
-        
-        loss = np.zeros(self.model.loss_layer.size)
-
-        accuracy = 0.0
-        for x, t in zip(x_batch, t_batch):
-            for layer in self.model.layers:
-                x = layer.forward(x)
-            
-            loss += self.model.loss_layer.forward(x, t)
-            if np.argmax(x) == np.argmax(t):
-                accuracy += 1.0
-
-        loss /= x_batch.shape[0]
-        accuracy = 100.0 * accuracy / x_batch.shape[0]  # percent value
-
-        return loss, accuracy
 
 
 class SGD(Optimizer):
