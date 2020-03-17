@@ -4,7 +4,7 @@ sys.path.append("../")
 
 import unittest
 import numpy as np
-from numpy_neural_network import Conv2d
+from numpy_neural_network import Conv2D
 
 
 def ref_forward(x, w, kernel_size, kernel_depth, num_kernels, stride, num_groups):
@@ -152,7 +152,7 @@ def ref_backward_gw(gy, x, kernel_size, kernel_depth, num_kernels, stride, num_g
 
 class TestConv2D(unittest.TestCase):
 
-    def test_conv2d_layer(self):
+    def test_conv2D_layer(self):
 
         # loop over different random layer configurations ...
         for episode in np.arange(200):
@@ -242,7 +242,7 @@ class TestConv2D(unittest.TestCase):
                 shape_in, shape_out, stride, steps_h, steps_w, kernel_size, kernel_depth, num_kernels, groups
             ))
 
-            layer = Conv2d(
+            layer = Conv2D(
                 shape_in    = shape_in,
                 shape_out   = shape_out,
                 kernel_size = kernel_size,
