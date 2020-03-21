@@ -89,7 +89,6 @@ class Optimizer:
             # forward pass through all layers ...
             for layer in self.model.layers:
                 x = layer.forward(x)
-                #print("activation = {0}".format(x))
             self.train_y_batch[n] = x
 
             # loss calculation which gives a gradient ...
@@ -100,7 +99,6 @@ class Optimizer:
 
             # backward pass through all layers ...
             for layer in self.model.layers[::-1]:
-                #print("gradient = {0}".format(grad))
                 grad = layer.backward(grad)
 
         # calculate mini batch loss ...

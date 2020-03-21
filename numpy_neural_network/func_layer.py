@@ -224,18 +224,14 @@ class Softmax(FuncLayer):
                                              = y[n] * (0.0 - y[k])
         --------------------------------------------
         '''
-        y = self.y.ravel()
+        self.grad_x = np.zeros(self.y.shape)
 
-        grad_y = grad_y.ravel()
-        grad_x = np.zeros(grad_y.shape)
-
-        for n in np.arange(grad_y.shape[0]):
-            for k in np.arange(grad_x.shape[0]):
+        for n in np.arange(self.y.shape[0]):
+            for k in np.arange(self.y.shape[0]):
                 if n == k:
-                    grad_x[k] += y[n] * (1.0 - y[k]) * grad_y[n]
+                    self.grad_x[k] += self.y[n] * (1.0 - self.y[k]) * grad_y[n]
                 else:
-                    grad_x[k] += y[n] * (0.0 - y[k]) * grad_y[n]
+                    self.grad_x[k] += self.y[n] * (0.0 - self.y[k]) * grad_y[n]
 
-        self.grad_x = grad_x.reshape(self.grad_x.shape)
         return self.grad_x
 
