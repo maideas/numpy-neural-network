@@ -21,11 +21,11 @@ model = npnn.network.Model([
     npnn.MaxPool(shape_in=(28, 28, 6), shape_out=(14, 14, 6), kernel_size=2),
     npnn.Conv2D(shape_in=(14, 14, 6), shape_out=(10, 10, 16), kernel_size=5, stride=1),
     npnn.Tanh(10 * 10 * 16),
-    
+
     npnn.MaxPool(shape_in=(10, 10, 16), shape_out=(5, 5, 16), kernel_size=2),
     npnn.Conv2D(shape_in=(5, 5, 16), shape_out=(1, 1, 120), kernel_size=5, stride=1),
     npnn.Tanh(1 * 1 * 120),
-    
+
     npnn.Dense(120, 84),
     npnn.Tanh(84),
     npnn.Dense(84, 10),
@@ -53,7 +53,7 @@ mini_validation_loss = []
 mini_train_accuracy = []
 mini_validation_accuracy = []
 
-for episode in np.arange(2500):
+for episode in np.arange(400):
 
     # step the optimizer ...
     optimizer.step()
