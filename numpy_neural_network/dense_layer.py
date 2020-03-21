@@ -1,55 +1,32 @@
 
 import numpy as np
+from numpy_neural_network import Layer
 
-class Dense:
+class Dense(Layer):
     '''dense (fully) connected layer'''
 
-    def __init__(self, size_in, size_out):
-        self.size_in = size_in + 1  # plus bias node
-        self.size_out = size_out
+    def __init__(self, shape_in, shape_out):
+        shape_w = (np.prod(shape_out), np.prod(shape_in) + 1)
 
-        self.x_shape = (self.size_in,)
-        self.x = np.zeros(self.size_in)
-        self.y = np.zeros(self.size_out)
-        self.grad_x = np.zeros(self.size_in)  # layer input gradients
-        self.w = np.zeros((self.size_out, self.size_in))
-        self.grad_w = np.zeros((self.size_out, self.size_in))  # layer weight adjustment gradients
+        super(Dense, self).__init__(shape_in, shape_out, shape_w)
 
-        # optimizer dependent values (will be initialized by the selected optimizer) ...
-        self.prev_dw = None
-        self.ma_grad1 = None
-        self.ma_grad2 = None
-
+        self.x = np.zeros(self.shape_in)
         self.init_w()
 
     def forward(self, x):
-        '''
-        data forward path
-        input data -> weighted sums -> output data
-        returns : layer output data
-        '''
-        self.x_shape = x.shape
-        # last vector element will be used as bias node of value 1 ...
-        self.x = np.concatenate((x.copy().ravel(), [1.0]), axis=0)
-        self.y = np.matmul(self.w, self.x)
-        return self.y
+        self.x = x.ravel()
+        self.y = np.matmul(self.w[:,:-1], self.x)
+        self.y += self.w[:,-1]
+
+        return self.y.reshape(self.shape_out)
 
     def backward(self, grad_y):
-        '''
-        gradients backward path
-        output gradients (grad_y) -> derivative w.r.t weights -> weight gradients (grad_w)
-        output gradients (grad_y) -> derivative w.r.t inputs -> input gradients (grad_x)
-        returns : layer input gradients
-        '''
-        self.grad_w = np.outer(grad_y, self.x)
-        self.grad_x = np.matmul(grad_y, self.w)
-        # removal of bias gradient from return value and shape like x value ...
-        return self.grad_x[:-1].reshape(self.x_shape)
+        grad_y = grad_y.ravel()
+        self.grad_w[:,:-1] = np.outer(grad_y, self.x)
+        self.grad_w[:, -1] = grad_y
+        self.grad_x = np.matmul(grad_y, self.w[:,:-1])
 
-    def zero_grad(self):
-        '''set all gradient values to zero (preparation for incremental gradient calculation)'''
-        self.grad_x = np.zeros(self.size_in)
-        self.grad_w = np.zeros((self.size_out, self.size_in))
+        return self.grad_x.reshape(self.shape_in)
 
     def init_w(self):
         '''
@@ -58,13 +35,7 @@ class Dense:
         variance = sqrt(6) / (num neurons in previous layer + num neurons in this layer)
         bias weights = 0
         '''
-        stddev = np.sqrt(2.45 / (self.size_in + self.size_out))
-        self.w[:,:-1] = np.random.normal(0.0, stddev, (self.size_out, self.size_in - 1))
-        self.w[:, -1] = 0.0  # ... set the bias weights to 0
-
-    def step_init(self, is_training=False):
-        '''
-        this method may initialize some layer internals before each optimizer mini-batch step
-        '''
-        pass
+        stddev = np.sqrt(2.45 / (np.prod(self.shape_in) + np.prod(self.shape_out)))
+        self.w = np.random.normal(0.0, stddev, self.shape_w)
+        self.w[:,-1] = 0.0  # ... set the bias weights to 0
 

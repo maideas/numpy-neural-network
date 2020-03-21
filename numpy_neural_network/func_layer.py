@@ -1,27 +1,15 @@
 
 import numpy as np
+from numpy_neural_network import Layer
 
-class FuncLayer:
+class FuncLayer(Layer):
     '''function layer base class'''
 
-    def __init__(self, size):
+    def __init__(self, shape_in):
         '''
-        size : number of activation function connections (number of neurons)
+        size of shape_in = number of activation function connections (number of neurons)
         '''
-        self.size = size
-        self.y = np.zeros(self.size)
-        self.w = None
-        self.grad_x = np.zeros(self.size)
-
-    def zero_grad(self):
-        '''set all gradient values to zero (preparation for incremental gradient calculation)'''
-        self.grad_x = np.zeros(self.size)
-
-    def step_init(self, is_training=False):
-        '''
-        this method may initialize some layer internals before each optimizer mini-batch step
-        '''
-        pass
+        super(FuncLayer, self).__init__(shape_in, shape_in, None)
 
 
 class Linear(FuncLayer):
@@ -236,12 +224,18 @@ class Softmax(FuncLayer):
                                              = y[n] * (0.0 - y[k])
         --------------------------------------------
         '''
-        self.grad_x = np.zeros(self.size)
-        for n in np.arange(self.size):
-            for k in np.arange(self.size):
+        y = self.y.ravel()
+
+        grad_y = grad_y.ravel()
+        grad_x = np.zeros(grad_y.shape)
+
+        for n in np.arange(grad_y.shape[0]):
+            for k in np.arange(grad_x.shape[0]):
                 if n == k:
-                    self.grad_x[k] += self.y[n] * (1.0 - self.y[k]) * grad_y[n]
+                    grad_x[k] += y[n] * (1.0 - y[k]) * grad_y[n]
                 else:
-                    self.grad_x[k] += self.y[n] * (0.0 - self.y[k]) * grad_y[n]
+                    grad_x[k] += y[n] * (0.0 - y[k]) * grad_y[n]
+
+        self.grad_x = grad_x.reshape(self.grad_x.shape)
         return self.grad_x
 

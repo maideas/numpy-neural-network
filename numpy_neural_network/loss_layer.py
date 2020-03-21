@@ -4,10 +4,10 @@ import numpy as np
 class LossLayer:
     '''loss layer base class'''
 
-    def __init__(self, size):
-        self.size = size
-        self.x = np.zeros(self.size)
-        self.target = np.zeros(self.size)
+    def __init__(self, shape_in):
+        self.shape_in = shape_in
+        self.x = np.zeros(self.shape_in)
+        self.target = np.zeros(self.shape_in)
 
 
 class RMSLoss(LossLayer):
@@ -59,7 +59,7 @@ class L1Loss(LossLayer):
         x < 0 : f'(x) = -1.0
         --------------------------------------------
         '''
-        grad_x = np.ones(self.size)
+        grad_x = np.ones(self.shape_in)
         grad_x[(self.x - self.target) < 0.0] = -1.0
         return grad_x
 
@@ -90,15 +90,7 @@ class CrossEntropyLoss(LossLayer):
         f'(x) = -target / x
         --------------------------------------------
         '''
-        min_x = 1e-6  # to prevent divide by 0
-
-        grad_x = np.zeros(self.size)
-        for n in np.arange(self.size):
-            if self.x[n] > min_x:
-                grad_x[n] = np.divide(-self.target[n], self.x[n])
-            else:
-                grad_x[n] = np.divide(-self.target[n], min_x)
-        return grad_x
+        return np.divide(-self.target, self.x)
 
 
 class BinaryCrossEntropyLoss(LossLayer):
@@ -126,25 +118,5 @@ class BinaryCrossEntropyLoss(LossLayer):
         f'(x) = (-target / x) + ((1.0 - target) / (1.0 - x))
         --------------------------------------------
         '''
-        # to prevent divide by 0
-        min_x = 1e-6
-        max_x = 1.0 - min_x
-
-        grad_x = np.zeros(self.size)
-        for n in np.arange(self.size):
-            if self.x[n] < min_x:
-                grad_x_part1 = np.divide(-self.target[n], min_x)
-                grad_x_part2 = np.divide((1.0 - self.target[n]), (1.0 - self.x[n]))
-
-            elif self.x[n] > max_x:
-                grad_x_part1 = np.divide(-self.target[n], self.x[n])
-                grad_x_part2 = np.divide((1.0 - self.target[n]), max_x)
-
-            else:
-                grad_x_part1 = np.divide(-self.target[n], self.x[n])
-                grad_x_part2 = np.divide((1.0 - self.target[n]), (1.0 - self.x[n]))
-
-            grad_x[n] = grad_x_part1 + grad_x_part2
-        return grad_x
-
+        return np.divide(-self.target, self.x) + np.divide((1.0 - self.target), (1.0 - self.x))
 

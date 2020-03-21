@@ -1,4 +1,5 @@
 
+from numpy_neural_network.layer         import *
 from numpy_neural_network.dense_layer   import *
 from numpy_neural_network.func_layer    import *
 from numpy_neural_network.loss_layer    import *

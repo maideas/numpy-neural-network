@@ -1,0 +1,64 @@
+
+import numpy as np
+
+class Layer:
+    '''layer base class'''
+
+    def __init__(self, shape_in, shape_out, shape_w):
+        self.shape_in = shape_in
+        self.shape_out = shape_out
+        self.shape_w = shape_w
+
+        self.w = np.zeros(self.shape_w)
+        self.y = np.zeros(self.shape_out)
+        self.grad_x = np.zeros(self.shape_in)
+        self.grad_w = np.zeros(self.shape_w)
+
+        self.is_training = False
+
+        # optimizer dependent values, which will get
+        # initialized by the selected optimizer ...
+        self.prev_dw = None
+        self.ma_grad1 = None
+        self.ma_grad2 = None
+
+    def forward(self, x):
+        '''
+        data forward path
+        input data -> weighted sums -> output data
+        returns : layer output data
+        '''
+        return self.y
+
+    def backward(self, grad_y):
+        '''
+        gradients backward path
+        output gradients (grad_y) -> derivative w.r.t weights -> weight gradients (grad_w)
+        output gradients (grad_y) -> derivative w.r.t inputs -> input gradients (grad_x)
+        returns : layer input gradients
+        '''
+        return self.grad_x
+
+    def zero_grad(self):
+        '''
+        set all gradient values to zero
+        (preparation for incremental gradient calculation)
+        '''
+        self.grad_x = np.zeros(self.shape_in)
+        self.grad_w = np.zeros(self.shape_w)
+
+    def init_w(self):
+        '''
+        weight initialization
+        '''
+        pass
+
+    def step_init(self, is_training=False):
+        '''
+        this method may initialize some layer internals before each optimizer mini-batch step
+        '''
+        self.is_training = is_training
+
+    def update_weights(self, callback):
+        callback(self)
+

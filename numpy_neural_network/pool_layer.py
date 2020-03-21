@@ -1,21 +1,19 @@
 
 import numpy as np
+from numpy_neural_network import Layer
 
-class MaxPool:
+class MaxPool(Layer):
     '''max value pooling layer'''
 
     def __init__(self, shape_in, shape_out, kernel_size, stride=None):
-        self.shape_in = shape_in
-        self.shape_out = shape_out
+        super(MaxPool, self).__init__(shape_in, shape_out, None)
+
         self.kernel_size = kernel_size
         self.stride = stride
         if self.stride is None:
             self.stride = kernel_size
 
-        self.w = None
-        self.x = np.zeros(self.shape_in)  # layer input data
-        self.y = np.zeros(self.shape_out)  # layer output data
-        self.grad_x = np.zeros(self.shape_in)  # layer input gradients
+        self.x = np.zeros(self.shape_in)
 
         self.steps_h = 1 + int(np.trunc((self.shape_in[0] - self.kernel_size) / self.stride))
         self.steps_w = 1 + int(np.trunc((self.shape_in[1] - self.kernel_size) / self.stride))
@@ -80,16 +78,6 @@ class MaxPool:
             self.grad_x[x_index][idx] += grad_y[y_index]
 
         return self.grad_x
-
-    def zero_grad(self):
-        '''set all gradient values to zero'''
-        self.grad_x = np.zeros(self.grad_x.shape)
-
-    def step_init(self, is_training=False):
-        '''
-        this method may initialize some layer internals before each optimizer mini-batch step
-        '''
-        pass
 
     def check(self):
         '''check layer configuration consistency'''

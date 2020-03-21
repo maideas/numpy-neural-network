@@ -1,5 +1,6 @@
 
 import numpy as np
+#from profilehooks import profile
 
 class Optimizer:
     '''network model weights optimizer base class'''
@@ -25,7 +26,7 @@ class Optimizer:
         self.beta2 = beta2
 
         self.steps = 1
-        self.loss = np.zeros(self.model.loss_layer.size)
+        self.loss = np.zeros(self.model.loss_layer.shape_in)
         self.accuracy = 0.0
 
         self.train_x_batch = np.array([])
@@ -43,9 +44,9 @@ class Optimizer:
         for layer in self.model.layers:
             layer.zero_grad()
 
-    def weight_penalty(self, w):
+    def weight_decay(self, w):
         '''L2 norm of w (scalar value)'''
-        return self.gamma * np.sum(np.square(w)) / w.size
+        return self.gamma * np.sum(np.square(w)) / w.size()
 
     def update_weights(self, layer):
         '''
@@ -53,17 +54,9 @@ class Optimizer:
         default algorithm : vanilla gradient descent
         '''
         layer.w += -self.alpha * layer.grad_w
+        layer.w += self.weight_decay(layer.w)
 
-    def accuracy_increment(self, x, t):
-        if self.model.loss_layer.__class__.__name__ == "CrossEntropyLoss":
-            # softmax + cross entropy loss accuracy ...
-            if np.argmax(x) == np.argmax(t):
-                return 1.0
-        if self.model.loss_layer.__class__.__name__ == "BinaryCrossEntropyLoss":
-            # sigmoid + binary cross entropy accuracy ...
-            return np.array((x > 0.5) == (t > 0.5)).astype(int) / t.shape[0]
-        return 0.0
-
+    #@profile
     def step(self, batch_size=None):
         '''
         stochastic mini batch optimization step
@@ -85,7 +78,7 @@ class Optimizer:
         for layer in self.model.layers:
             layer.step_init(is_training=True)
 
-        self.loss = np.zeros(self.model.loss_layer.size)
+        self.loss = np.zeros(self.model.loss_layer.shape_in)
         self.accuracy = 0.0
 
         # pass mini batch data through the net ...
@@ -116,10 +109,7 @@ class Optimizer:
 
         # adjust the weights ...
         for layer in self.model.layers:
-            if layer.w is not None:
-                self.update_weights(layer)
-                layer.w += self.weight_penalty(layer.w)
-                #print("weights = {0}".format(layer.w))
+            layer.update_weights(self.update_weights)
 
         # switch layers back to non-training state ...
         for layer in self.model.layers:
@@ -127,6 +117,7 @@ class Optimizer:
 
         self.steps += 1
 
+    #@profile
     def predict(self, x_batch_in, t_batch_in=None):
         '''
         network model forward path calculation (prediction) of a given x batch
@@ -148,7 +139,7 @@ class Optimizer:
             # normalize target data ...
             t_batch = self.dataset.normalize(t_batch_in, self.dataset.y_mean, self.dataset.y_variance)
 
-            self.loss = np.zeros(self.model.loss_layer.size)
+            self.loss = np.zeros(self.model.loss_layer.shape_in)
             self.accuracy = 0.0
 
             for x, t in zip(x_batch, t_batch):
@@ -176,6 +167,16 @@ class Optimizer:
         for y in y_batch:
             c_batch.append(np.argmax(y))
         return np.array(c_batch)
+
+    def accuracy_increment(self, x, t):
+        if self.model.loss_layer.__class__.__name__ == "CrossEntropyLoss":
+            # softmax + cross entropy loss accuracy ...
+            if np.argmax(x) == np.argmax(t):
+                return 1.0
+        if self.model.loss_layer.__class__.__name__ == "BinaryCrossEntropyLoss":
+            # sigmoid + binary cross entropy accuracy ...
+            return np.array((x > 0.5) == (t > 0.5)).astype(int) / t.shape[0]
+        return 0.0
 
 
 class SGD(Optimizer):
