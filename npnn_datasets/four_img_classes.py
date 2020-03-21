@@ -12,12 +12,12 @@ class FourImgClasses(DataSet):
         
         k = 0
         
-        # 0 1 1
+        # 1 1 1
         # 1 0 1
-        # 1 1 0
+        # 1 1 1
         for n in np.arange(8):
             for m in np.arange(8):
-                self.x_data[k, n+0, m+0, 0] = 0
+                self.x_data[k, n+0, m+0, 0] = 1
                 self.x_data[k, n+1, m+0, 0] = 1
                 self.x_data[k, n+2, m+0, 0] = 1
                 self.x_data[k, n+0, m+1, 0] = 1
@@ -25,7 +25,7 @@ class FourImgClasses(DataSet):
                 self.x_data[k, n+2, m+1, 0] = 1
                 self.x_data[k, n+0, m+2, 0] = 1
                 self.x_data[k, n+1, m+2, 0] = 1
-                self.x_data[k, n+2, m+2, 0] = 0
+                self.x_data[k, n+2, m+2, 0] = 1
                 self.y_data[k, 0] = 1
                 k += 1
         
