@@ -21,8 +21,8 @@ class Dense(Layer):
         return self.y
 
     def backward(self, grad_y):
-        self.grad_w[:,:-1] = np.outer(grad_y, self.x)
-        self.grad_w[:, -1] = grad_y
+        self.grad_w[:,:-1] += np.outer(grad_y, self.x)
+        self.grad_w[:, -1] += grad_y
         self.grad_x = np.matmul(grad_y, self.w[:,:-1])
 
         return self.grad_x.reshape(self.x.shape)
