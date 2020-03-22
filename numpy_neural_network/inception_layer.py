@@ -179,13 +179,13 @@ class Inception(Layer):
         for layer in self.branches[3].layers[::-1]:
             b3_grad_y = layer.backward(b3_grad_y)
 
-        grad_x = np.zeros(self.shape_in)
-        grad_x += b0_grad_y
-        grad_x += b1_grad_y
-        grad_x += b2_grad_y
-        grad_x += b3_grad_y
+        self.grad_x = np.zeros(self.shape_in)
+        self.grad_x += b0_grad_y
+        self.grad_x += b1_grad_y
+        self.grad_x += b2_grad_y
+        self.grad_x += b3_grad_y
 
-        return grad_x
+        return self.grad_x
 
     def zero_grad(self):
         '''
