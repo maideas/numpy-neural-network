@@ -1,9 +1,5 @@
 
-if 'CUDA' in globals() or 'CUDA' in locals():
-    import cupy as np
-else:
-    import numpy as np
-
+import numpy as np
 import numpy_neural_network as npnn
 from numpy_neural_network import Layer
 

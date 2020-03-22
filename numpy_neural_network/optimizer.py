@@ -1,8 +1,5 @@
 
-if 'CUDA' in globals() or 'CUDA' in locals():
-    import cupy as np
-else:
-    import numpy as np
+import numpy as np
 
 #from profilehooks import profile
 
