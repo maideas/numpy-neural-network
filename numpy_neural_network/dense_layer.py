@@ -1,5 +1,9 @@
 
-import numpy as np
+if 'CUDA' in globals() or 'CUDA' in locals():
+    import cupy as np
+else:
+    import numpy as np
+
 from numpy_neural_network import Layer
 
 class Dense(Layer):
