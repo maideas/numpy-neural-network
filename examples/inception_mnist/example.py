@@ -61,7 +61,7 @@ mini_validation_loss = []
 mini_train_accuracy = []
 mini_validation_accuracy = []
 
-for episode in np.arange(2000):
+for episode in np.arange(400):
 
     # step the optimizer ...
     optimizer.step()
