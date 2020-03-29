@@ -24,8 +24,6 @@ class UpConv2D(Layer):
         self.steps_w = shape_in[1]
 
         self.x = np.zeros([])
-        self.wb = np.zeros(shape_out)
-        self.grad_wb = np.zeros(shape_out)
 
         self.init_w()
 
@@ -87,10 +85,6 @@ class UpConv2D(Layer):
 
         self.grad_wb += grad_y
         return self.grad_x
-
-    def zero_grad(self):
-        super(UpConv2D, self).zero_grad()
-        self.grad_wb = np.zeros(self.shape_out)
 
     def init_w(self):
         '''

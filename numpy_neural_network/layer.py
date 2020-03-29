@@ -13,6 +13,7 @@ class Layer:
         self.y = np.zeros(self.shape_out)
         self.grad_x = np.zeros(self.shape_in)
         self.grad_w = np.zeros(self.shape_w)
+        self.grad_wb = np.zeros(self.shape_out)
 
         self.is_training = False
 
@@ -46,6 +47,7 @@ class Layer:
         '''
         self.grad_x = np.zeros(self.shape_in)
         self.grad_w = np.zeros(self.shape_w)
+        self.grad_wb = np.zeros(self.shape_out)
 
     def init_w(self):
         '''
