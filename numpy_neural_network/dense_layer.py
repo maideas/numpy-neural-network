@@ -6,7 +6,7 @@ class Dense(Layer):
     '''dense (fully) connected layer'''
 
     def __init__(self, shape_in, shape_out):
-        shape_w = (np.prod(shape_out), np.prod(shape_in) + 1)
+        shape_w = (np.prod(shape_out), np.prod(shape_in))
 
         super(Dense, self).__init__(shape_in, shape_out, shape_w)
 
@@ -14,16 +14,16 @@ class Dense(Layer):
         self.init_w()
 
     def forward(self, x):
-        self.x = x
-        self.y = np.matmul(self.w[:,:-1], self.x.ravel())
-        self.y += self.w[:,-1]
+        self.x = x.ravel()
+        self.y = np.matmul(self.w, self.x)
+        self.y += self.wb
 
         return self.y
 
     def backward(self, grad_y):
-        self.grad_w[:,:-1] += np.outer(grad_y, self.x)
-        self.grad_w[:, -1] += grad_y
-        self.grad_x = np.matmul(grad_y, self.w[:,:-1])
+        self.grad_w += np.outer(grad_y, self.x)
+        self.grad_wb += grad_y
+        self.grad_x = np.matmul(grad_y, self.w)
 
         return self.grad_x.reshape(self.x.shape)
 
@@ -36,5 +36,5 @@ class Dense(Layer):
         '''
         stddev = np.sqrt(2.45 / (np.prod(self.shape_in) + np.prod(self.shape_out)))
         self.w = np.random.normal(0.0, stddev, self.shape_w)
-        self.w[:,-1] = 0.0  # ... set the bias weights to 0
+        self.wb = np.zeros(self.shape_out)  # ... set the bias weights to 0
 

@@ -13,11 +13,10 @@ class Conv2D(Layer):
         self.channels_in_per_group = int(np.trunc(shape_in[2] / self.groups))
         self.channels_out_per_group = int(np.trunc(shape_out[2] / self.groups))
 
-        self.kernel_size_in = (
-            self.kernel_size * self.kernel_size * self.channels_in_per_group
-        ) + 1  # plus bias node
-
-        shape_w = (self.groups, self.channels_out_per_group, self.kernel_size_in)
+        shape_w = (
+            self.groups, self.channels_out_per_group,
+            self.kernel_size, self.kernel_size, self.channels_in_per_group
+        )
 
         super(Conv2D, self).__init__(shape_in, shape_out, shape_w)
 
@@ -61,17 +60,12 @@ class Conv2D(Layer):
             "to be equal to layer shape_in ({0}) !".format(self.shape_in)
 
         self.x = x
-        self.y = np.full(self.shape_out, np.nan)
-
+        self.y = np.zeros(self.shape_out)
         for x_index, y_index, w_index in zip(self.x_indices, self.y_indices, self.w_indices):
+            for kernel_sel in np.arange(self.channels_out_per_group):
+                self.y[y_index][kernel_sel] += np.sum(np.multiply(self.w[w_index][kernel_sel], self.x[x_index]))
 
-            # get the current 3D slice out of input data x ...
-            kernel_x = self.x[x_index].ravel()
-
-            # set output channel values to weighted slice data sums ...
-            self.y[y_index] = np.matmul(self.w[w_index][:,:-1], kernel_x)
-            self.y[y_index] += self.w[w_index][:, -1]
-
+        self.y += self.wb
         return self.y
 
     def backward(self, grad_y):
@@ -85,22 +79,13 @@ class Conv2D(Layer):
             "Conv2D: backward() gradient shape ({0}) has ".format(grad_y.shape) + \
             "to be equal to layer shape_out ({0}) !".format(self.shape_out)
 
+        self.grad_x = np.zeros(self.shape_in)
         for x_index, y_index, w_index in zip(self.x_indices, self.y_indices, self.w_indices):
+            for kernel_sel in np.arange(self.channels_out_per_group):
+                self.grad_x[x_index] += np.multiply(grad_y[y_index][kernel_sel], self.w[w_index][kernel_sel])
+                self.grad_w[w_index][kernel_sel] += grad_y[y_index][kernel_sel] * self.x[x_index]
 
-            # get the current 3D slice out of input data x ...
-            kernel_x = self.x[x_index].ravel()
-
-            # weight (w) gradients calculation ...
-            self.grad_w[w_index][:,:-1] += np.outer(grad_y[y_index], kernel_x)
-            self.grad_w[w_index][:, -1] += grad_y[y_index]
-
-            # input (x) gradients calculation ...
-            self.grad_x[x_index] += np.matmul(grad_y[y_index], self.w[w_index][:,:-1]).reshape(
-                self.kernel_size,
-                self.kernel_size,
-                self.channels_in_per_group
-            )
-
+        self.grad_wb += grad_y
         return self.grad_x
 
     def init_w(self):
@@ -113,11 +98,8 @@ class Conv2D(Layer):
             np.square(self.kernel_size) * self.channels_in_per_group +
             np.square(self.kernel_size / self.stride) * self.channels_out_per_group
         ))
-        for group in np.arange(self.groups):
-            self.w[group][:,:-1] = np.random.normal(
-                0.0, stddev, (self.channels_out_per_group, self.kernel_size_in - 1)
-            )
-            self.w[group][:, -1] = 0.0  # ... set the bias weights to 0
+        self.w = np.random.normal(0.0, stddev, self.w.shape)
+        self.wb = np.zeros(self.shape_out)  # ... set the bias weights to 0
 
     def check(self):
         '''check layer configuration consistency'''

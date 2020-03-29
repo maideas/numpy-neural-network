@@ -78,9 +78,10 @@ class UpConv2D(Layer):
             "Conv2D: backward() gradient shape ({0}) has ".format(grad_y.shape) + \
             "to be equal to layer shape_out ({0}) !".format(self.shape_out)
 
+        self.grad_x = np.zeros(self.shape_in)
         for x_index, y_index, w_index in zip(self.x_indices, self.y_indices, self.w_indices):
             for kernel_sel in np.arange(self.channels_in_per_group):
-                self.grad_x[x_index][kernel_sel] = np.sum(np.multiply(grad_y[y_index], self.w[w_index][kernel_sel]))
+                self.grad_x[x_index][kernel_sel] += np.sum(np.multiply(grad_y[y_index], self.w[w_index][kernel_sel]))
                 self.grad_w[w_index][kernel_sel] += grad_y[y_index] * self.x[x_index][kernel_sel]
 
         self.grad_wb += grad_y
