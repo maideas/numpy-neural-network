@@ -10,7 +10,9 @@ class Layer:
         self.shape_w = shape_w
 
         self.w = np.zeros(self.shape_w)
+        self.wb = np.zeros(self.shape_out)
         self.y = np.zeros(self.shape_out)
+
         self.grad_x = np.zeros(self.shape_in)
         self.grad_w = np.zeros(self.shape_w)
         self.grad_wb = np.zeros(self.shape_out)
@@ -19,9 +21,13 @@ class Layer:
 
         # optimizer dependent values, which will get
         # initialized by the selected optimizer ...
-        self.prev_dw = None
-        self.ma_grad1 = None
-        self.ma_grad2 = None
+        self.prev_d_w   = None
+        self.ma_grad1_w = None
+        self.ma_grad2_w = None
+
+        self.prev_d_wb   = None
+        self.ma_grad1_wb = None
+        self.ma_grad2_wb = None
 
     def forward(self, x):
         '''
