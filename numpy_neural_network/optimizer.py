@@ -57,6 +57,9 @@ class Optimizer:
         layer.w += -self.alpha * layer.grad_w
         layer.w += self.weight_decay(layer.w)
 
+        layer.wb += -self.alpha * layer.grad_wb
+        layer.wb += self.weight_decay(layer.wb)
+
     #@profile
     def step(self, batch_size=None):
         '''
@@ -186,12 +189,19 @@ class SGD(Optimizer):
         implements the optimizer dependent layer weight update algorithm
         layer : network model layer to be adapted
         '''
-        if layer.prev_dw is None:
-            layer.prev_dw = np.zeros(layer.w.shape)
+        if layer.prev_d_w is None:
+            layer.prev_d_w = np.zeros(layer.w.shape)
 
-        dw = -self.alpha * layer.grad_w
-        layer.w += (1.0 - self.beta1) * dw + self.beta1 * layer.prev_dw
-        layer.prev_dw = dw
+        d_w = -self.alpha * layer.grad_w
+        layer.w += (1.0 - self.beta1) * d_w + self.beta1 * layer.prev_d_w
+        layer.prev_d_w = d_w
+
+        if layer.prev_d_wb is None:
+            layer.prev_d_wb = np.zeros(layer.wb.shape)
+
+        d_wb = -self.alpha * layer.grad_wb
+        layer.wb += (1.0 - self.beta1) * d_wb + self.beta1 * layer.prev_d_wb
+        layer.prev_d_wb = d_wb
 
 
 class RMSprop(Optimizer):
@@ -202,14 +212,23 @@ class RMSprop(Optimizer):
         implements the optimizer dependent layer weight update algorithm
         layer : network model layer to be adapted
         '''
-        if layer.ma_grad2 is None:
-            layer.ma_grad2 = np.zeros(layer.w.shape)
+        if layer.ma_grad2_w is None:
+            layer.ma_grad2_w = np.zeros(layer.w.shape)
 
         # squared gradient moving average ...
-        layer.ma_grad2 = self.beta2 * layer.ma_grad2 + (1.0 - self.beta2) * np.square(layer.grad_w)
+        layer.ma_grad2_w = self.beta2 * layer.ma_grad2_w + (1.0 - self.beta2) * np.square(layer.grad_w)
 
         # weight adjustment ...
-        layer.w += -self.alpha * np.divide(layer.grad_w, (np.sqrt(layer.ma_grad2) + 1e-9))
+        layer.w += -self.alpha * np.divide(layer.grad_w, (np.sqrt(layer.ma_grad2_w) + 1e-9))
+
+        if layer.ma_grad2_wb is None:
+            layer.ma_grad2_wb = np.zeros(layer.wb.shape)
+
+        # squared gradient moving average ...
+        layer.ma_grad2_wb = self.beta2 * layer.ma_grad2_wb + (1.0 - self.beta2) * np.square(layer.grad_wb)
+
+        # weight adjustment ...
+        layer.wb += -self.alpha * np.divide(layer.grad_wb, (np.sqrt(layer.ma_grad2_wb) + 1e-9))
 
 
 class Adam(Optimizer):
@@ -219,18 +238,33 @@ class Adam(Optimizer):
         implements the optimizer dependent layer weight update algorithm
         layer : network model layer to be adapted
         '''
-        if layer.ma_grad1 is None:
-            layer.ma_grad1 = np.zeros(layer.w.shape)
-            layer.ma_grad2 = np.zeros(layer.w.shape)
+        if layer.ma_grad1_w is None:
+            layer.ma_grad1_w = np.zeros(layer.w.shape)
+            layer.ma_grad2_w = np.zeros(layer.w.shape)
 
         # normal and squared gradient moving average ...
-        layer.ma_grad1 = self.beta1 * layer.ma_grad1 + (1.0 - self.beta1) *           layer.grad_w
-        layer.ma_grad2 = self.beta2 * layer.ma_grad2 + (1.0 - self.beta2) * np.square(layer.grad_w)
+        layer.ma_grad1_w = self.beta1 * layer.ma_grad1_w + (1.0 - self.beta1) *           layer.grad_w
+        layer.ma_grad2_w = self.beta2 * layer.ma_grad2_w + (1.0 - self.beta2) * np.square(layer.grad_w)
 
         # bias correction (boot strapping) ...
-        ma_grad1 = layer.ma_grad1 / (1.0 - np.power(self.beta1, self.steps))
-        ma_grad2 = layer.ma_grad2 / (1.0 - np.power(self.beta2, self.steps))
+        ma_grad1_w = layer.ma_grad1_w / (1.0 - np.power(self.beta1, self.steps))
+        ma_grad2_w = layer.ma_grad2_w / (1.0 - np.power(self.beta2, self.steps))
 
         # weight adjustment ...
-        layer.w += -self.alpha * np.divide(ma_grad1, (np.sqrt(ma_grad2) + 1e-9))
+        layer.w += -self.alpha * np.divide(ma_grad1_w, (np.sqrt(ma_grad2_w) + 1e-9))
+
+        if layer.ma_grad1_wb is None:
+            layer.ma_grad1_wb = np.zeros(layer.wb.shape)
+            layer.ma_grad2_wb = np.zeros(layer.wb.shape)
+
+        # normal and squared gradient moving average ...
+        layer.ma_grad1_wb = self.beta1 * layer.ma_grad1_wb + (1.0 - self.beta1) *           layer.grad_wb
+        layer.ma_grad2_wb = self.beta2 * layer.ma_grad2_wb + (1.0 - self.beta2) * np.square(layer.grad_wb)
+
+        # bias correction (boot strapping) ...
+        ma_grad1_wb = layer.ma_grad1_wb / (1.0 - np.power(self.beta1, self.steps))
+        ma_grad2_wb = layer.ma_grad2_wb / (1.0 - np.power(self.beta2, self.steps))
+
+        # weight adjustment ...
+        layer.wb += -self.alpha * np.divide(ma_grad1_wb, (np.sqrt(ma_grad2_wb) + 1e-9))
 
