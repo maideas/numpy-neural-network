@@ -61,6 +61,7 @@ class Conv2D(Layer):
 
         self.x = x
         self.y = np.zeros(self.shape_out)
+
         for x_index, y_index, w_index in zip(self.x_indices, self.y_indices, self.w_indices):
             for kernel_sel in np.arange(self.channels_out_per_group):
                 self.y[y_index][kernel_sel] += np.sum(np.multiply(self.w[w_index][kernel_sel], self.x[x_index]))
