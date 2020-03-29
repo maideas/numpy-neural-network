@@ -7,7 +7,7 @@ import numpy as np
 from numpy_neural_network import Conv2D
 
 
-def ref_forward(x, w, kernel_size, kernel_depth, num_kernels, stride, num_groups):
+def ref_forward(x, w, wb, kernel_size, kernel_depth, num_kernels, stride, num_groups):
 
     # calculation of some useful layer configuration values ...
     steps_h = int(1 + (x.shape[0] - kernel_size) / stride)
@@ -17,7 +17,7 @@ def ref_forward(x, w, kernel_size, kernel_depth, num_kernels, stride, num_groups
     w_out = steps_w
     d_out = num_kernels * num_groups
 
-    # initialization of the 3D output array with zeros ...
+    # initialization of the 3D output tensor with zeros ...
     y = np.zeros((h_out, w_out, d_out))
 
     # over all groups ...
@@ -42,17 +42,13 @@ def ref_forward(x, w, kernel_size, kernel_depth, num_kernels, stride, num_groups
                                 x_h_index = (step_h * stride) + kernel_h
                                 x_w_index = (step_w * stride) + kernel_w
                                 x_d_index = (group_sel * kernel_depth) + kernel_d
-                                w_ravel_index = (kernel_h * kernel_size * kernel_depth) + (kernel_w * kernel_depth) + kernel_d
 
                                 x_val = x[x_h_index, x_w_index, x_d_index]
-                                w_val = w[group_sel, kernel_sel, w_ravel_index]
+                                w_val = w[group_sel, kernel_sel, kernel_h, kernel_w, kernel_d]
 
                                 # incremental output value update ...
                                 y[y_h_index, y_w_index, y_d_index] += x_val * w_val
-
-                    # add (per-kernel) weighted bias information to the selected output value ...
-                    bias_val = w[group_sel, kernel_sel, -1]
-                    y[y_h_index, y_w_index, y_d_index] += bias_val
+    y += wb
     return y
 
 
@@ -91,10 +87,9 @@ def ref_backward_gx(gy, w, kernel_size, kernel_depth, num_kernels, stride, num_g
                                 x_h_index = (step_h * stride) + kernel_h
                                 x_w_index = (step_w * stride) + kernel_w
                                 x_d_index = (group_sel * kernel_depth) + kernel_d
-                                w_ravel_index = (kernel_h * kernel_size * kernel_depth) + (kernel_w * kernel_depth) + kernel_d
 
                                 gy_val = gy[y_h_index, y_w_index, y_d_index]
-                                w_val = w[group_sel, kernel_sel, w_ravel_index]
+                                w_val = w[group_sel, kernel_sel, kernel_h, kernel_w, kernel_d]
 
                                 # incremental input gradient value update ...
                                 gx[x_h_index, x_w_index, x_d_index] += gy_val * w_val
@@ -111,8 +106,8 @@ def ref_backward_gw(gy, x, kernel_size, kernel_depth, num_kernels, stride, num_g
     w_in = (steps_w - 1) * stride + kernel_size
     d_in = kernel_depth * num_groups
 
-    # initialization of the 3D weight gradient array with zeros ...
-    gw = np.zeros((num_groups, num_kernels, kernel_size * kernel_size * kernel_depth + 1))
+    # initialization of the 3D weight gradient tensor with zeros ...
+    gw = np.zeros((num_groups, num_kernels, kernel_size, kernel_size, kernel_depth))
 
     # over all groups ...
     for group_sel in np.arange(num_groups):
@@ -136,23 +131,20 @@ def ref_backward_gw(gy, x, kernel_size, kernel_depth, num_kernels, stride, num_g
                                 x_h_index = (step_h * stride) + kernel_h
                                 x_w_index = (step_w * stride) + kernel_w
                                 x_d_index = (group_sel * kernel_depth) + kernel_d
-                                w_ravel_index = (kernel_h * kernel_size * kernel_depth) + (kernel_w * kernel_depth) + kernel_d
 
                                 gy_val = gy[y_h_index, y_w_index, y_d_index]
                                 x_val = x[x_h_index, x_w_index, x_d_index]
 
                                 # incremental weight gradient value update ...
-                                gw[group_sel, kernel_sel, w_ravel_index] += gy_val * x_val
-
-                    # bias weight update ...
-                    gy_val = gy[y_h_index, y_w_index, y_d_index]
-                    gw[group_sel, kernel_sel, -1] += gy_val
+                                gw[group_sel, kernel_sel, kernel_h, kernel_w, kernel_d] += gy_val * x_val
     return gw
 
 
 class TestConv2D(unittest.TestCase):
 
     def test_conv2D_layer(self):
+
+        print("test_conv2D_layer")
 
         # loop over different random layer configurations ...
         for episode in np.arange(200):
@@ -233,7 +225,7 @@ class TestConv2D(unittest.TestCase):
 
             shape_in  = (h_in, w_in, d_in)
             shape_out = (h_out, w_out, d_out)
-            shape_w   = (groups, num_kernels, kernel_size * kernel_size * kernel_depth + 1)
+            shape_w   = (groups, num_kernels, kernel_size, kernel_size, kernel_depth)
 
             #================================================
             # network layer object to be tested ...
@@ -258,28 +250,32 @@ class TestConv2D(unittest.TestCase):
                 if pattern == 0:
                     # simple (all zeros) values ...
                     w  = np.zeros(shape_w)
+                    wb = np.zeros(shape_out)
                     x  = np.zeros(shape_in)
                     gy = np.zeros(shape_out)
 
                 if pattern == 1:
                     # simple (all ones) values ...
                     w  = np.ones(shape_w)
+                    wb = np.ones(shape_out)
                     x  = np.ones(shape_in)
                     gy = np.ones(shape_out)
 
                 if pattern > 1:
                     # random normal weights, input data and output side gradients ...
                     w  = np.random.normal(0.0, 1.0, shape_w)
+                    wb = np.random.normal(0.0, 1.0, shape_out)
                     x  = np.random.normal(0.0, 1.0, shape_in)
                     gy = np.random.normal(0.0, 1.0, shape_out)
 
                 # reference calculation ...
-                y_ref  = ref_forward     (x,  w, kernel_size, kernel_depth, num_kernels, stride, groups)
-                gx_ref = ref_backward_gx (gy, w, kernel_size, kernel_depth, num_kernels, stride, groups)
-                gw_ref = ref_backward_gw (gy, x, kernel_size, kernel_depth, num_kernels, stride, groups)
+                y_ref  = ref_forward     (x,  w, wb, kernel_size, kernel_depth, num_kernels, stride, groups)
+                gx_ref = ref_backward_gx (gy, w,     kernel_size, kernel_depth, num_kernels, stride, groups)
+                gw_ref = ref_backward_gw (gy, x,     kernel_size, kernel_depth, num_kernels, stride, groups)
 
                 # set the layer weights according the reference values ...
                 layer.w = w
+                layer.wb = wb
 
                 # layer forward pass ...
                 y = layer.forward(x)
@@ -291,11 +287,15 @@ class TestConv2D(unittest.TestCase):
                 layer.zero_grad()
                 gx = layer.backward(gy)
                 gw = layer.grad_w
+                gwb = layer.grad_wb
 
                 # test almost equal ... layer input side gradients against reference gradients ...
                 np.testing.assert_allclose(gx_ref, gx)
 
                 # test almost equal ... layer weight gradients against reference gradients ...
                 np.testing.assert_allclose(gw_ref, gw)
+
+                # test almost equal ... layer bias weight gradients (which are equal to gy)
+                np.testing.assert_allclose(gy, gwb)
 
 
