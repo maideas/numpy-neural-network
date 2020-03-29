@@ -7,7 +7,7 @@ import numpy as np
 from numpy_neural_network import Dense
 
 
-def ref_forward(x, w, shape_in, num_out):
+def ref_forward(x, w, wb, shape_in, num_out):
 
     # initialization of the output vector with zeros ...
     y = np.zeros(num_out)
@@ -30,11 +30,7 @@ def ref_forward(x, w, shape_in, num_out):
 
                     # incremental output value update ...
                     y[y_index] += x_val * w_val
-
-        # add weighted bias information to the selected output value ...
-        bias_val = w[w_out_index, -1]
-        y[y_index] += bias_val
-
+    y += wb
     return y
 
 
@@ -66,7 +62,7 @@ def ref_backward_gx(gy, w, shape_in, num_out):
 def ref_backward_gw(gy, x, shape_in, num_out):
 
     # initialization of the weight gradient array with zeros ...
-    gw = np.zeros((num_out, np.prod(shape_in) + 1))
+    gw = np.zeros((num_out, np.prod(shape_in)))
 
     # traverse output ...
     for y_index in np.arange(num_out):
@@ -86,17 +82,14 @@ def ref_backward_gw(gy, x, shape_in, num_out):
 
                     # incremental weight gradient value update ...
                     gw[w_out_index, w_in_index] += gy_val * x_val
-
-        # add weighted bias information to the selected output value ...
-        gy_val = gy[y_index]
-        gw[w_out_index, -1] += gy_val
-
     return gw
 
 
 class TestDense(unittest.TestCase):
 
     def test_dense_layer(self):
+
+        print("test_dense_layer")
 
         # loop over different random layer configurations ...
         for episode in np.arange(100):
@@ -150,7 +143,7 @@ class TestDense(unittest.TestCase):
                 #============================================
 
             shape_in  = (h_in, w_in, d_in)
-            shape_w   = (num_out, np.prod(shape_in) + 1)
+            shape_w   = (num_out, np.prod(shape_in))
 
             #================================================
             # network layer object to be tested ...
@@ -170,28 +163,32 @@ class TestDense(unittest.TestCase):
                 if pattern == 0:
                     # simple (all zeros) values ...
                     w  = np.zeros(shape_w)
+                    wb = np.zeros(num_out)
                     x  = np.zeros(shape_in)
                     gy = np.zeros(num_out)
 
                 if pattern == 1:
                     # simple (all ones) values ...
                     w  = np.ones(shape_w)
+                    wb = np.ones(num_out)
                     x  = np.ones(shape_in)
                     gy = np.ones(num_out)
 
                 if pattern > 1:
                     # random normal weights, input data and output side gradients ...
                     w  = np.random.normal(0.0, 1.0, shape_w)
+                    wb = np.random.normal(0.0, 1.0, num_out)
                     x  = np.random.normal(0.0, 1.0, shape_in)
                     gy = np.random.normal(0.0, 1.0, num_out)
 
                 # reference calculation ...
-                y_ref  = ref_forward     (x,  w, shape_in, num_out)
-                gx_ref = ref_backward_gx (gy, w, shape_in, num_out)
-                gw_ref = ref_backward_gw (gy, x, shape_in, num_out)
+                y_ref  = ref_forward     (x,  w, wb, shape_in, num_out)
+                gx_ref = ref_backward_gx (gy, w,     shape_in, num_out)
+                gw_ref = ref_backward_gw (gy, x,     shape_in, num_out)
 
                 # set the layer weights according the reference values ...
                 layer.w = w
+                layer.wb = wb
 
                 # layer forward pass ...
                 y = layer.forward(x)
@@ -203,6 +200,7 @@ class TestDense(unittest.TestCase):
                 layer.zero_grad()
                 gx = layer.backward(gy)
                 gw = layer.grad_w
+                gwb = layer.grad_wb
 
                 # test almost equal ... layer input side gradients against reference gradients ...
                 np.testing.assert_allclose(gx_ref, gx)
@@ -210,4 +208,6 @@ class TestDense(unittest.TestCase):
                 # test almost equal ... layer weight gradients against reference gradients ...
                 np.testing.assert_allclose(gw_ref, gw)
 
+                # test almost equal ... layer bias weight gradients (which are equal to gy)
+                np.testing.assert_allclose(gy, gwb)
 
