@@ -122,6 +122,8 @@ class TestUpConv2D(unittest.TestCase):
 
     def test_upconv2D_layer(self):
 
+        print("test_upconv2D_layer")
+
         # loop over different random layer configurations ...
         for episode in np.arange(200):
 

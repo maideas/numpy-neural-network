@@ -50,6 +50,8 @@ class TestPad2D(unittest.TestCase):
 
     def test_pad2D_layer(self):
 
+        print("test_pad2D_layer")
+
         # loop over different random layer configurations ...
         for episode in np.arange(200):
 

@@ -98,6 +98,8 @@ class TestMaxPool(unittest.TestCase):
 
     def test_max_pool_layer(self):
 
+        print("test_max_pool_layer")
+
         # loop over different random layer configurations ...
         for episode in np.arange(200):
 
