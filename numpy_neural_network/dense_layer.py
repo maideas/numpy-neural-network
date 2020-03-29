@@ -15,7 +15,7 @@ class Dense(Layer):
 
     def forward(self, x):
         self.x = x.ravel()
-        self.y = np.matmul(self.w, self.x)
+        self.y = np.matmul(self.w, self.x).reshape(self.shape_out)
         self.y += self.wb
 
         return self.y
@@ -23,9 +23,9 @@ class Dense(Layer):
     def backward(self, grad_y):
         self.grad_w += np.outer(grad_y, self.x)
         self.grad_wb += grad_y
-        self.grad_x = np.matmul(grad_y, self.w)
+        self.grad_x = np.matmul(grad_y, self.w).reshape(self.shape_in)
 
-        return self.grad_x.reshape(self.shape_in)
+        return self.grad_x
 
     def init_w(self):
         '''
