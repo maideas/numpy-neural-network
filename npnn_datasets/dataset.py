@@ -13,6 +13,7 @@ class DataSet:
         # x and y data have to be initialized by derived class
         self.x_data = np.array([])
         self.y_data = np.array([])
+        self.c_data = np.array([])
 
 
     def prepare(self, train_fraction=0.7, normalize_x=True, normalize_y=True):
@@ -36,8 +37,10 @@ class DataSet:
 
         self.x_train_data = self.x_data[idx_train]
         self.y_train_data = self.y_data[idx_train]
+        self.c_train_data = self.c_data[idx_train]
         self.x_validation_data = self.x_data[idx_validation]
         self.y_validation_data = self.y_data[idx_validation]
+        self.c_validation_data = self.c_data[idx_validation]
 
         # to get a good stochastic behavior, the mini batch size
         # shall be smaller than the complete data batch size: for this
