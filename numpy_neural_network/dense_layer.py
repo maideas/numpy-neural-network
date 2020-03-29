@@ -10,7 +10,7 @@ class Dense(Layer):
 
         super(Dense, self).__init__(shape_in, shape_out, shape_w)
 
-        self.x = np.zeros(self.shape_in)
+        self.x = np.zeros(np.prod(shape_in))
         self.init_w()
 
     def forward(self, x):
@@ -25,7 +25,7 @@ class Dense(Layer):
         self.grad_wb += grad_y
         self.grad_x = np.matmul(grad_y, self.w)
 
-        return self.grad_x.reshape(self.x.shape)
+        return self.grad_x.reshape(self.shape_in)
 
     def init_w(self):
         '''
