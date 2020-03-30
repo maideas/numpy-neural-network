@@ -127,6 +127,11 @@ class Optimizer:
         t_batch : optional target data, which can be used for loss and accuracy calculation
         returns : network model output data
         '''
+        # switch layers to non-training state and call layer step_init, which
+        # may set some values to 0 (e.g. VAE kl_loss) before batch prediction ...
+        for layer in self.model.layers:
+            layer.step_init(is_training=False)
+
         # normalize network input data ...
         x_batch = self.dataset.normalize(x_batch_in, self.dataset.x_mean, self.dataset.x_variance)
         y_batch = []
