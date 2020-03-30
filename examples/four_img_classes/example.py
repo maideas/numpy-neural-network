@@ -25,7 +25,7 @@ model = npnn.network.Model([
     npnn.MaxPool(shape_in=(2, 2, 10), shape_out=(1, 1, 10), kernel_size=2),
     npnn.LeakyReLU(1 * 1 * 10),
 
-    npnn.Dense(10, 4),
+    npnn.Dense((1, 1, 10), 4),
     npnn.Softmax(4)
 ])
 
