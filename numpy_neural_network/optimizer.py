@@ -125,7 +125,7 @@ class Optimizer:
             # normalize target data ...
             t_batch = self.norm['normalize'](t_batch, self.norm['y_mean'], self.norm['y_variance'])
 
-            self.model.zero_grad()
+            self.model.zero_grad()  # clears loss and accuracy values
             y_batch = []
             for x, t in zip(x_batch, t_batch):
                 x = self.model.predict(x, t)
