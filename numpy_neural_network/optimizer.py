@@ -6,7 +6,7 @@ import numpy as np
 class Optimizer:
     '''network model weights optimizer base class'''
 
-    def __init__(self, model,
+    def __init__(self,
                  alpha=1e-3,
                  gamma=0.0,
                  beta1=0.9,
@@ -18,8 +18,9 @@ class Optimizer:
         beta1 : Adam beta1 / weight adaption momentum
         beta2 : Adam beta2 / RMSprop beta2
         '''
-        self.model = model
-        self.dataset = None
+        self.model = None
+        self.chain = None
+        self.norm = None
 
         self.alpha = alpha
         self.gamma = gamma
@@ -27,23 +28,13 @@ class Optimizer:
         self.beta2 = beta2
 
         self.steps = 1
-        self.loss = np.zeros(self.model.loss_layer.shape_in)
+        self.loss = np.array([0.0])
         self.accuracy = 0.0
 
         self.train_x_batch = np.array([])
         self.train_t_batch = np.array([])
         self.train_y_batch = np.array([])
 
-        self.init()
-
-    def init(self):
-        '''initializes optimizer specific model layer members'''
-        pass
-
-    def zero_grad(self):
-        '''set all gradient values to zero (preparation for incremental gradient calculation)'''
-        for layer in self.model.layers:
-            layer.zero_grad()
 
     def weight_decay(self, w):
         '''L2 norm of w (scalar value)'''
@@ -60,67 +51,56 @@ class Optimizer:
         layer.wb += -self.alpha * layer.grad_wb
         layer.wb += self.weight_decay(layer.wb)
 
+
     #@profile
-    def step(self, batch_size=None):
+    def step(self, x_batch=None, t_batch=None):
         '''
         stochastic mini batch optimization step
         '''
+        self.train_x_batch = x_batch
+        self.train_t_batch = t_batch
 
-        # x_batch : network model input data batch
-        # t_batch : related network model target data batch
-        train_x_batch, train_t_batch = self.dataset.get_train_batch(batch_size)
+        if self.norm is not None:
+            # normalize network (input, output) training data ...
+            self.train_x_batch = self.norm['normalize'](self.train_x_batch, self.norm['x_mean'], self.norm['x_variance'])
+            self.train_t_batch = self.norm['normalize'](self.train_t_batch, self.norm['y_mean'], self.norm['y_variance'])
 
-        # normalize network (input, output) training data ...
-        self.train_x_batch = self.dataset.normalize(train_x_batch, self.dataset.x_mean, self.dataset.x_variance)
-        self.train_t_batch = self.dataset.normalize(train_t_batch, self.dataset.y_mean, self.dataset.y_variance)
-        self.train_y_batch = np.zeros(self.train_t_batch.shape)
-
-        # initialize gradients to zero ...
-        self.zero_grad()
+        # zero gradients and loss ...
+        self.model.zero_grad()
 
         # switch layers to training state ...
-        for layer in self.model.layers:
-            layer.step_init(is_training=True)
-
-        self.loss = np.zeros(self.model.loss_layer.shape_in)
-        self.accuracy = 0.0
+        self.model.step_init(is_training=True)
 
         # pass mini batch data through the net ...
-        for n in np.arange(self.train_x_batch.shape[0]):
-            x = self.train_x_batch[n]
-            t = self.train_t_batch[n]
+        g_batch = []
+        y_batch = []
+        for x, t in zip(self.train_x_batch, self.train_t_batch):
+            g, x = self.model.step(x, t)
+            g_batch.append(g)
+            y_batch.append(x)
 
-            # forward pass through all layers ...
-            for layer in self.model.layers:
-                x = layer.forward(x)
-            self.train_y_batch[n] = x
+        g_batch = np.array(g_batch)
+        y_batch = np.array(y_batch)
 
-            # loss calculation which gives a gradient ...
-            self.loss += self.model.loss_layer.forward(x, t)
-            grad = self.model.loss_layer.backward()
-
-            self.accuracy += self.accuracy_increment(x, t)
-
-            # backward pass through all layers ...
-            for layer in self.model.layers[::-1]:
-                grad = layer.backward(grad)
-
-        # calculate mini batch loss ...
-        self.loss /= self.train_x_batch.shape[0]
-        self.accuracy = 100.0 * self.accuracy / self.train_x_batch.shape[0]  # percentage value
+        # get mini batch loss and accuracy ...
+        self.loss     = self.model.loss     / self.train_x_batch.shape[0]
+        self.accuracy = self.model.accuracy / self.train_x_batch.shape[0]
 
         # adjust the weights ...
-        for layer in self.model.layers:
-            layer.update_weights(self.update_weights)
+        self.model.update_weights(self.update_weights)
 
         # switch layers back to non-training state ...
-        for layer in self.model.layers:
-            layer.step_init(is_training=False)
+        self.model.step_init(is_training=False)
+
+        if self.norm is not None:
+            self.train_y_batch = self.norm['denormalize'](self.train_y_batch, self.norm['y_mean'], self.norm['y_variance'])
 
         self.steps += 1
+        return g_batch, self.train_y_batch
+
 
     #@profile
-    def predict(self, x_batch_in, t_batch_in=None):
+    def predict(self, x_batch, t_batch=None):
         '''
         network model forward path calculation (prediction) of a given x batch
         x_batch : network model input data
@@ -129,39 +109,39 @@ class Optimizer:
         '''
         # switch layers to non-training state and call layer step_init, which
         # may set some values to 0 (e.g. VAE kl_loss) before batch prediction ...
-        for layer in self.model.layers:
-            layer.step_init(is_training=False)
+        self.model.step_init(is_training=False)
 
-        # normalize network input data ...
-        x_batch = self.dataset.normalize(x_batch_in, self.dataset.x_mean, self.dataset.x_variance)
-        y_batch = []
+        if self.norm is not None:
+            # normalize network input data ...
+            x_batch = self.norm['normalize'](x_batch, self.norm['x_mean'], self.norm['x_variance'])
 
-        if t_batch_in is None:
+        if t_batch is None:
+            y_batch = []
             for x in x_batch:
-                for layer in self.model.layers:
-                    x = layer.forward(x)
+                x = self.model.predict(x)
                 y_batch.append(x)
 
         else:
             # normalize target data ...
-            t_batch = self.dataset.normalize(t_batch_in, self.dataset.y_mean, self.dataset.y_variance)
+            t_batch = self.norm['normalize'](t_batch, self.norm['y_mean'], self.norm['y_variance'])
 
-            self.loss = np.zeros(self.model.loss_layer.shape_in)
-            self.accuracy = 0.0
-
+            self.model.zero_grad()
+            y_batch = []
             for x, t in zip(x_batch, t_batch):
-                for layer in self.model.layers:
-                    x = layer.forward(x)
+                x = self.model.predict(x, t)
                 y_batch.append(x)
-                
-                self.loss += self.model.loss_layer.forward(x, t)
-                self.accuracy += self.accuracy_increment(x, t)
-         
-            self.loss /= x_batch.shape[0]
-            self.accuracy = 100.0 * self.accuracy / x_batch.shape[0]  # percentage value
+
+            self.loss     = self.model.loss     / x_batch.shape[0]
+            self.accuracy = self.model.accuracy / x_batch.shape[0]
+
+        y_batch = np.array(y_batch)
 
         # denormalize network output data ...
-        return self.dataset.denormalize(np.array(y_batch), self.dataset.y_mean, self.dataset.y_variance)
+        if self.norm is not None:
+            return self.norm['denormalize'](y_batch, self.norm['y_mean'], self.norm['y_variance'])
+        else:
+            return y_batch
+
 
     def predict_class(self, x_batch):
         '''
@@ -174,16 +154,6 @@ class Optimizer:
         for y in y_batch:
             c_batch.append(np.argmax(y))
         return np.array(c_batch)
-
-    def accuracy_increment(self, x, t):
-        if self.model.loss_layer.__class__.__name__ == "CrossEntropyLoss":
-            # softmax + cross entropy loss accuracy ...
-            if np.argmax(x) == np.argmax(t):
-                return 1.0
-        if self.model.loss_layer.__class__.__name__ == "BinaryCrossEntropyLoss":
-            # sigmoid + binary cross entropy accuracy ...
-            return np.array((x > 0.5) == (t > 0.5)).astype(int) / t.shape[0]
-        return 0.0
 
 
 class SGD(Optimizer):

@@ -30,7 +30,8 @@ class Inception(Layer):
         self.branches = [None, None, None, None]
 
         # branch 0 : 1x1 convolution + ReLU
-        self.branches[0] = npnn.network.Model([
+        self.branches[0] = npnn.Sequential()
+        self.branches[0].layers = [
             npnn.Conv2D(  # b0_c1
                 shape_in = (self.shape_in[0], self.shape_in[1], self.d_in),
                 shape_out = (self.shape_in[0], self.shape_in[1], self.b0_c1_d_out),
@@ -39,10 +40,11 @@ class Inception(Layer):
             npnn.LeakyReLU(
                 shape_in = (self.shape_in[0], self.shape_in[1], self.b0_c1_d_out)
             )
-        ])
+        ]
 
         # branch 1 : 1x1 convolution + ReLU + 3x3 convolution + ReLU
-        self.branches[1] = npnn.network.Model([
+        self.branches[1] = npnn.Sequential()
+        self.branches[1].layers = [
             npnn.Conv2D(  # b1_c1
                 shape_in = (self.shape_in[0], self.shape_in[1], self.d_in),
                 shape_out = (self.shape_in[0], self.shape_in[1], self.b1_c3_d_in),
@@ -63,10 +65,11 @@ class Inception(Layer):
             npnn.LeakyReLU(
                 shape_in = (self.shape_in[0], self.shape_in[1], self.b1_c3_d_out)
             )
-        ])
+        ]
 
         # branch 2 : 1x1 convolution + ReLU + 5x5 convolution + ReLU
-        self.branches[2] = npnn.network.Model([
+        self.branches[2] = npnn.Sequential()
+        self.branches[2].layers = [
             npnn.Conv2D(  # b2_c1
                 shape_in = (self.shape_in[0], self.shape_in[1], self.d_in),
                 shape_out = (self.shape_in[0], self.shape_in[1], self.b2_c5_d_in),
@@ -87,10 +90,11 @@ class Inception(Layer):
             npnn.LeakyReLU(
                 shape_in = (self.shape_in[0], self.shape_in[1], self.b2_c5_d_out)
             )
-        ])
+        ]
 
         # branch 3 : 3x3 max pooling + 1x1 convolution + ReLU
-        self.branches[3] = npnn.network.Model([
+        self.branches[3] = npnn.Sequential()
+        self.branches[3].layers = [
             npnn.Pad2D(
                 shape_in = (self.shape_in[0], self.shape_in[1], self.d_in),
                 pad_axis0 = 1, pad_axis1 = 1
@@ -108,7 +112,7 @@ class Inception(Layer):
             npnn.LeakyReLU(
                 shape_in = (self.shape_in[0], self.shape_in[1], self.b3_c1_d_out)
             )
-        ])
+        ]
 
     def forward(self, x):
         '''

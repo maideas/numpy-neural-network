@@ -12,7 +12,8 @@ class Latent(Layer):
 
         super(Latent, self).__init__(shape_in, shape_out, None)
 
-        self.latent_mean_model = npnn.network.Model([
+        self.latent_mean_model = npnn.Sequential()
+        self.latent_mean_model.layers = [
             npnn.Dense(shape_in=shape_in, shape_out=shape_in),
             npnn.Tanh(shape_in=shape_in),
             npnn.Dense(shape_in=shape_in, shape_out=shape_in),
@@ -20,16 +21,17 @@ class Latent(Layer):
             # Linear output can be negative and positive without limits
             # like a mean value ...
             npnn.Linear(shape_in=shape_in)
-        ])
+        ]
 
-        self.latent_variance_model = npnn.network.Model([
+        self.latent_variance_model = npnn.Sequential()
+        self.latent_variance_model.layers = [
             npnn.Dense(shape_in=shape_in, shape_out=shape_in),
             npnn.Tanh(shape_in=shape_in),
             npnn.Dense(shape_in=shape_in, shape_out=shape_in),
 
             # Softplus output is always positive like a variance value ...
             npnn.Softplus(shape_in=shape_in)
-        ])
+        ]
 
         self.x_mean = np.zeros(shape_in)
         self.x_variance = np.zeros(shape_in)

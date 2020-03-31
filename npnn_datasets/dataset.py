@@ -10,6 +10,14 @@ class DataSet:
         self.y_mean     = np.array([0.0])
         self.y_variance = np.array([1.0])
 
+        self.norm = {}
+        self.norm['x_mean']      = self.x_mean
+        self.norm['x_variance']  = self.x_variance
+        self.norm['y_mean']      = self.y_mean
+        self.norm['y_variance']  = self.y_variance
+        self.norm['normalize']   = self.normalize
+        self.norm['denormalize'] = self.denormalize
+
         # x and y data have to be initialized by derived class
         self.x_data = np.array([])
         self.y_data = np.array([])
@@ -21,8 +29,12 @@ class DataSet:
         # calculate data mean and variance (if requested) ...
         if normalize_x:
             self.x_mean, self.x_variance = self.get_mean_and_variance(self.x_data)
+            self.norm['x_mean']     = self.x_mean
+            self.norm['x_variance'] = self.x_variance
         if normalize_y:
             self.y_mean, self.y_variance = self.get_mean_and_variance(self.y_data)
+            self.norm['y_mean']     = self.y_mean
+            self.norm['y_variance'] = self.y_variance
 
         # split data into train and validation data ...
         self.num_train_data = int(self.x_data.shape[0] * train_fraction)

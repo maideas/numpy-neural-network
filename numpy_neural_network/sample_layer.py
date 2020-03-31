@@ -15,7 +15,7 @@ class Sample(Layer):
         self.x_mean = None
         self.x_variance = None
 
-        self.train_z = None  # training mode hidden state z data mini batch
+        self.train_z = None  # training mode hidden state z vector
 
     def forward(self, x):
 
