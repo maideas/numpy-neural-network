@@ -13,23 +13,26 @@ matplotlib.rcParams['toolbar'] = 'None'
 
 ################################################################################
 
-model = npnn.network.Model([
+model = npnn.Sequential()
+model.layers = [
     npnn.Dense(2, 4),
     npnn.LeakyReLU(4),
     npnn.Dense(4, 4),
     npnn.LeakyReLU(4),
     npnn.Dense(4, 1),
     npnn.Sigmoid(1)
-])
+]
 
-model.loss_layer = npnn.loss_layer.RMSLoss(1)
+loss_layer = npnn.loss_layer.RMSLoss(1)
+optimizer  = npnn.optimizer.Adam(alpha=2e-2)
+dataset    = npnn_datasets.XORFunction()
 
-optimizer = npnn.optimizer.Adam(model, alpha=2e-2)
-
-optimizer.dataset = npnn_datasets.XORFunction()
+optimizer.norm  = dataset.norm
+optimizer.model = model
+optimizer.model.chain = loss_layer
 
 # because of the small dataset, use all data every time for validation loss calculation ...
-optimizer.dataset.validation_batch_size = optimizer.dataset.num_validation_data
+dataset.validation_batch_size = dataset.num_validation_data
 
 ################################################################################
 
@@ -59,7 +62,7 @@ for episode in np.arange(300):
     ax1.scatter([0, 1], [1, 0], s=30, c='tab:red')
 
     # step the optimizer ...
-    optimizer.step()
+    optimizer.step(*dataset.get_train_batch())
     episodes.append(episode)
 
     # append the optimizer step train loss ...
@@ -67,7 +70,7 @@ for episode in np.arange(300):
     train_loss_y.append(tloss)
 
     # calculate and append the validation loss ...
-    x_validation_batch, t_validation_batch = optimizer.dataset.get_validation_batch()
+    x_validation_batch, t_validation_batch = dataset.get_validation_batch()
     y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
 
     vloss = np.mean(optimizer.loss)

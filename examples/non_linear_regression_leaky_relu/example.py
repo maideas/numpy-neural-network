@@ -13,7 +13,8 @@ matplotlib.rcParams['toolbar'] = 'None'
 
 ################################################################################
 
-model = npnn.network.Model([
+model = npnn.Sequential()
+model.layers = [
     npnn.Dense(1, 10),
     npnn.LeakyReLU(10),
     npnn.Dense(10, 20),
@@ -30,16 +31,18 @@ model = npnn.network.Model([
     npnn.LeakyReLU(10),
     npnn.Dense(10, 1),
     npnn.Linear(1)
-])
+]
 
-model.loss_layer = npnn.loss_layer.RMSLoss(1)
+loss_layer = npnn.loss_layer.RMSLoss(1)
+optimizer  = npnn.optimizer.Adam(alpha=1e-3)  # LeakyReLU
+dataset    = npnn_datasets.NoisySine()
 
-optimizer = npnn.optimizer.Adam(model, alpha=1e-3)  # LeakyReLU
-
-optimizer.dataset = npnn_datasets.NoisySine()
+optimizer.norm  = dataset.norm
+optimizer.model = model
+optimizer.model.chain = loss_layer
 
 # because of the small dataset, use all data every time for validation loss calculation ...
-optimizer.dataset.validation_batch_size = optimizer.dataset.num_validation_data
+dataset.validation_batch_size = dataset.num_validation_data
 
 ################################################################################
 
@@ -53,17 +56,17 @@ episodes = []
 train_loss_y = []
 validation_loss_y = []
 
-for episode in np.arange(1000):
+for episode in np.arange(500):
 
     # plot the green dataset points ...
-    x = optimizer.dataset.x_data
+    x = dataset.x_data
     z = optimizer.predict(x)
     ax1.cla()
-    ax1.scatter(optimizer.dataset.x_data, optimizer.dataset.y_data, s=2, c='tab:green')
+    ax1.scatter(dataset.x_data, dataset.y_data, s=2, c='tab:green')
     ax1.plot(x, z)
 
     # step the optimizer ...
-    optimizer.step()
+    optimizer.step(*dataset.get_train_batch())
     episodes.append(episode)
 
     # append the optimizer step train loss ...
@@ -71,7 +74,7 @@ for episode in np.arange(1000):
     train_loss_y.append(tloss)
 
     # calculate and append the validation loss ...
-    x_validation_batch, t_validation_batch = optimizer.dataset.get_validation_batch()
+    x_validation_batch, t_validation_batch = dataset.get_validation_batch()
     y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
 
     vloss = np.mean(optimizer.loss)

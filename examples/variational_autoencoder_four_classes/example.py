@@ -13,31 +13,44 @@ matplotlib.rcParams['toolbar'] = 'None'
 
 ################################################################################
 
-model = npnn.network.Model([
+encoder_model = npnn.Sequential()
+encoder_model.layers = [
     npnn.Conv2D(shape_in=(3, 3, 1), shape_out=(2, 2, 6), kernel_size=2, stride=1),
     npnn.Tanh(2 * 2 * 6),
     npnn.Conv2D(shape_in=(2, 2, 6), shape_out=(1, 1, 2), kernel_size=2, stride=1),
     npnn.Tanh(1 * 1 * 2),
-    npnn.Latent(shape_in=(1, 1, 2)),
+    npnn.Latent(shape_in=(1, 1, 2))
+]
+
+decoder_model = npnn.Sequential()
+decoder_model.layers = [
+    npnn.Sample(shape_out=(1, 1, 2)),
     npnn.UpConv2D(shape_in=(1, 1, 2), shape_out=(2, 2, 6), kernel_size=2, stride=1),
     npnn.Tanh(2 * 2 * 6),
     npnn.UpConv2D(shape_in=(2, 2, 6), shape_out=(3, 3, 1), kernel_size=2, stride=1),
     npnn.Tanh(3 * 3 * 1)
-])
+]
 
-latent_layer = model.layers[4]
-latent_layer.train_z = []
+latent_layer = encoder_model.layers[4]
+sample_layer = decoder_model.layers[0]
+sample_layer.train_z = []
 
-model.loss_layer = npnn.loss_layer.RMSLoss(shape_in=(3, 3, 1))
+################################################################################
 
-optimizer = npnn.optimizer.Adam(model, alpha=5e-3)
+loss_layer = npnn.loss_layer.RMSLoss(shape_in=(3, 3, 1))
+optimizer  = npnn.optimizer.Adam(alpha=5e-3)
+dataset    = npnn_datasets.FourSmallImages()
 
-optimizer.dataset = npnn_datasets.FourSmallImages()
+encoder_model.chain = decoder_model
+decoder_model.chain = loss_layer
+
+optimizer.norm  = dataset.norm
+optimizer.model = encoder_model
 
 # because of the small dataset, use all data every time for validation loss calculation ...
-optimizer.dataset.validation_batch_size = optimizer.dataset.num_validation_data
+dataset.validation_batch_size = dataset.num_validation_data
 
-optimizer.dataset.train_batch_size = int(optimizer.dataset.num_train_data / 2)
+dataset.train_batch_size = int(dataset.num_train_data / 2)
 
 ################################################################################
 
@@ -66,10 +79,10 @@ train_batch_z1_mean = []
 for episode in np.arange(2000):
 
     # step the optimizer ...
-    optimizer.step()
+    optimizer.step(*dataset.get_train_batch())
     episodes.append(episode)
 
-    train_z = np.array(latent_layer.train_z).reshape(-1, 2)
+    train_z = np.array(sample_layer.train_z).reshape(-1, 2)
 
     #===========================================================================
     # mini batch loss
@@ -88,12 +101,12 @@ for episode in np.arange(2000):
     # complete dataset loss
     #===========================================================================
 
-    optimizer.predict(optimizer.dataset.x_train_data, optimizer.dataset.y_train_data)
+    optimizer.predict(dataset.x_train_data, dataset.y_train_data)
     tloss = optimizer.loss
     train_loss.append(np.mean(tloss))
-    mini_train_kl_loss.append(model.layers[4].kl_loss / optimizer.dataset.num_train_data)
+    mini_train_kl_loss.append(latent_layer.kl_loss / dataset.num_train_data)
 
-    y_predicted_data = optimizer.predict(optimizer.dataset.x_validation_data, optimizer.dataset.y_validation_data)
+    y_predicted_data = optimizer.predict(dataset.x_validation_data, dataset.y_validation_data)
     vloss = optimizer.loss
     valid_loss.append(np.mean(vloss))
 
@@ -116,13 +129,13 @@ for episode in np.arange(2000):
     latent_data = []
     latent_classes = []
 
-    for n in np.arange(optimizer.dataset.x_data.shape[0]):
-        optimizer.predict(np.array([optimizer.dataset.x_data[n]]))
+    for n in np.arange(dataset.x_data.shape[0]):
+        optimizer.predict(np.array([dataset.x_data[n]]))
 
         latent_mean.append(latent_layer.x_mean)
         latent_variance.append(latent_layer.x_variance)
-        latent_data.append(latent_layer.y)
-        latent_classes.append(optimizer.dataset.c_data[n])
+        latent_data.append(sample_layer.y)
+        latent_classes.append(dataset.c_data[n])
 
     latent_mean = np.array(latent_mean).reshape(-1, 2)
     latent_variance = np.array(latent_variance).reshape(-1, 2)
@@ -131,8 +144,8 @@ for episode in np.arange(2000):
 
     #===========================================================================
 
-    optimizer.predict(optimizer.dataset.x_validation_data)
-    mini_validation_kl_loss.append(latent_layer.kl_loss / optimizer.dataset.num_validation_data)
+    optimizer.predict(dataset.x_validation_data)
+    mini_validation_kl_loss.append(latent_layer.kl_loss / dataset.num_validation_data)
 
     #===========================================================================
 

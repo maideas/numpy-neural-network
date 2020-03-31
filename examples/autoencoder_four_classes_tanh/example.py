@@ -13,7 +13,8 @@ matplotlib.rcParams['toolbar'] = 'None'
 
 ################################################################################
 
-model = npnn.network.Model([
+model = npnn.Sequential()
+model.layers = [
     npnn.Conv2D(shape_in=(3, 3, 1), shape_out=(2, 2, 6), kernel_size=2, stride=1),
     npnn.Tanh(2 * 2 * 6),
     npnn.Conv2D(shape_in=(2, 2, 6), shape_out=(1, 1, 2), kernel_size=2, stride=1),
@@ -22,16 +23,18 @@ model = npnn.network.Model([
     npnn.Tanh(2 * 2 * 6),
     npnn.UpConv2D(shape_in=(2, 2, 6), shape_out=(3, 3, 1), kernel_size=2, stride=1),
     npnn.Tanh(3 * 3 * 1)
-])
+]
 
-model.loss_layer = npnn.loss_layer.RMSLoss(shape_in=(3, 3, 1))
+loss_layer = npnn.loss_layer.RMSLoss(shape_in=(3, 3, 1))
+optimizer  = npnn.optimizer.Adam(alpha=1e-2)
+dataset    = npnn_datasets.FourSmallImages()
 
-optimizer = npnn.optimizer.Adam(model, alpha=1e-2)
-
-optimizer.dataset = npnn_datasets.FourSmallImages()
+optimizer.norm  = dataset.norm
+optimizer.model = model
+optimizer.model.chain = loss_layer
 
 # because of the small dataset, use all data every time for validation loss calculation ...
-optimizer.dataset.validation_batch_size = optimizer.dataset.num_validation_data
+dataset.validation_batch_size = dataset.num_validation_data
 
 ################################################################################
 
@@ -50,7 +53,7 @@ valid_loss = []
 for episode in np.arange(200):
 
     # step the optimizer ...
-    optimizer.step()
+    optimizer.step(*dataset.get_train_batch())
     episodes.append(episode)
 
     #===========================================================================
@@ -70,11 +73,11 @@ for episode in np.arange(200):
     # complete dataset loss
     #===========================================================================
 
-    optimizer.predict(optimizer.dataset.x_train_data, optimizer.dataset.y_train_data)
+    optimizer.predict(dataset.x_train_data, dataset.y_train_data)
     tloss = optimizer.loss
     train_loss.append(np.mean(tloss))
 
-    y_predicted_data = optimizer.predict(optimizer.dataset.x_validation_data, optimizer.dataset.y_validation_data)
+    y_predicted_data = optimizer.predict(dataset.x_validation_data, dataset.y_validation_data)
     vloss = optimizer.loss
     valid_loss.append(np.mean(vloss))
 
@@ -94,10 +97,10 @@ for episode in np.arange(200):
 
     latent_data = []
     latent_classes = []
-    for n in np.arange(optimizer.dataset.x_data.shape[0]):
-        optimizer.predict(np.array([optimizer.dataset.x_data[n]]))
+    for n in np.arange(dataset.x_data.shape[0]):
+        optimizer.predict(np.array([dataset.x_data[n]]))
         latent_data.append(model.layers[3].y)
-        latent_classes.append(optimizer.dataset.c_data[n])
+        latent_classes.append(dataset.c_data[n])
 
     latent_data = np.array(latent_data).reshape(-1, 2)
     latent_classes = np.array(latent_classes).reshape(-1, 1)

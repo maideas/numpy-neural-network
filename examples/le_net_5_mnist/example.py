@@ -13,7 +13,8 @@ matplotlib.rcParams['toolbar'] = 'None'
 
 ################################################################################
 
-model = npnn.network.Model([
+model = npnn.Sequential()
+model.layers = [
     npnn.Pad2D(shape_in=(28, 28, 1), pad_axis0=2, pad_axis1=2),
     npnn.Conv2D(shape_in=(32, 32, 1), shape_out=(28, 28, 6), kernel_size=5, stride=1),
     npnn.Tanh(28 * 28 * 6),
@@ -30,13 +31,15 @@ model = npnn.network.Model([
     npnn.Tanh(84),
     npnn.Dense(84, 10),
     npnn.Softmax(10)
-])
+]
 
-model.loss_layer = npnn.loss_layer.CrossEntropyLoss(10)
+loss_layer = npnn.loss_layer.CrossEntropyLoss(10)
+optimizer  = npnn.optimizer.Adam(alpha=1e-3)
+dataset    = npnn_datasets.MNIST()
 
-optimizer = npnn.optimizer.Adam(model, alpha=1e-3)
-
-optimizer.dataset = npnn_datasets.MNIST()
+optimizer.norm  = dataset.norm
+optimizer.model = model
+optimizer.model.chain = loss_layer
 
 ################################################################################
 
@@ -56,7 +59,7 @@ mini_validation_accuracy = []
 for episode in np.arange(400):
 
     # step the optimizer ...
-    optimizer.step()
+    optimizer.step(*dataset.get_train_batch())
     episodes.append(episode)
 
     #===========================================================================
@@ -78,15 +81,15 @@ for episode in np.arange(400):
 
     ax2.cla()
     ax2.set_xlabel('episode')
-    ax2.set_ylabel('train mini-batch accuracy [%]')
-    ax2.set_ylim(-5, 105)
+    ax2.set_ylabel('train mini-batch accuracy')
+    ax2.set_ylim(-0.05, 1.05)
     ax2.plot(episodes, mini_train_accuracy)
 
     #===========================================================================
     # complete dataset loss and accuracy
     #===========================================================================
 
-    x_validation_batch, t_validation_batch = optimizer.dataset.get_validation_batch()
+    x_validation_batch, t_validation_batch = dataset.get_validation_batch()
     y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
 
     vloss = np.mean(optimizer.loss)
@@ -96,7 +99,7 @@ for episode in np.arange(400):
     mini_validation_accuracy.append(vaccuracy)
 
     # print the episode and loss values ...
-    print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}, taccuracy = {3:5.3f}%, vaccuracy = {4:5.3f}%".format(
+    print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}, taccuracy = {3:5.3f}, vaccuracy = {4:5.3f}".format(
         episode, tloss, vloss, taccuracy, vaccuracy
     ))
 
@@ -109,8 +112,8 @@ for episode in np.arange(400):
 
     ax4.cla()
     ax4.set_xlabel('episode')
-    ax4.set_ylabel('validation mini-batch accuracy [%]')
-    ax4.set_ylim(-5, 105)
+    ax4.set_ylabel('validation mini-batch accuracy')
+    ax4.set_ylim(-0.05, 1.05)
     ax4.plot(episodes, mini_validation_accuracy, c='tab:orange')
 
     #===========================================================================

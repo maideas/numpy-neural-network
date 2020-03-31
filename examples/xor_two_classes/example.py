@@ -13,23 +13,26 @@ matplotlib.rcParams['toolbar'] = 'None'
 
 ################################################################################
 
-model = npnn.network.Model([
+model = npnn.Sequential()
+model.layers = [
     npnn.Dense(2, 4),
     npnn.LeakyReLU(4),
     npnn.Dense(4, 4),
     npnn.LeakyReLU(4),
     npnn.Dense(4, 2),
     npnn.Softmax(2)
-])
+]
 
-model.loss_layer = npnn.loss_layer.CrossEntropyLoss(2)
+loss_layer = npnn.loss_layer.CrossEntropyLoss(2)
+optimizer  = npnn.optimizer.Adam(alpha=1e-2)
+dataset    = npnn_datasets.XORTwoClasses()
 
-optimizer = npnn.optimizer.Adam(model, alpha=1e-2)
-
-optimizer.dataset = npnn_datasets.XORTwoClasses()
+optimizer.norm  = dataset.norm
+optimizer.model = model
+optimizer.model.chain = loss_layer
 
 # because of the small dataset, use all data every time for validation loss calculation ...
-optimizer.dataset.validation_batch_size = optimizer.dataset.num_validation_data
+dataset.validation_batch_size = dataset.num_validation_data
 
 ################################################################################
 
@@ -49,7 +52,7 @@ validation_accuracy_y = []
 for episode in np.arange(200):
 
     # step the optimizer ...
-    optimizer.step()
+    optimizer.step(*dataset.get_train_batch())
     episodes.append(episode)
 
     # append the optimizer step train loss ...
@@ -60,7 +63,7 @@ for episode in np.arange(200):
     train_accuracy_y.append(taccuracy)
 
     # calculate and append the validation loss ...
-    x_validation_batch, t_validation_batch = optimizer.dataset.get_validation_batch()
+    x_validation_batch, t_validation_batch = dataset.get_validation_batch()
     y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
 
     vloss = optimizer.loss
@@ -91,7 +94,7 @@ for episode in np.arange(200):
     ax3.cla()
     ax3.set_xlabel('episode')
     ax3.set_ylabel('accuracy')
-    ax3.set_ylim(-5, 105)
+    ax3.set_ylim(-0.05, 1.05)
     ax3.plot(episodes, train_accuracy_y, episodes, validation_accuracy_y)
 
     plt.draw()

@@ -13,18 +13,19 @@ matplotlib.rcParams['toolbar'] = 'None'
 
 ################################################################################
 
-model = npnn.Sequential([
+model = npnn.Sequential()
+model.layers = [
     npnn.Dense(1, 1),
     npnn.Linear(1)
-])
+]
 
 loss_layer = npnn.loss_layer.RMSLoss(1)
 optimizer  = npnn.optimizer.Adam(alpha=2e-2)
 dataset    = npnn_datasets.NoisyLinear()
 
-optimizer.model = model
-optimizer.chain = loss_layer
 optimizer.norm  = dataset.norm
+optimizer.model = model
+optimizer.model.chain = loss_layer
 
 # because of the small dataset, use all data every time for validation loss calculation ...
 dataset.validation_batch_size = dataset.num_validation_data
@@ -41,7 +42,7 @@ episodes = []
 train_loss_y = []
 validation_loss_y = []
 
-for episode in np.arange(400):
+for episode in np.arange(200):
 
     # plot the green dataset points ...
     x = dataset.x_data

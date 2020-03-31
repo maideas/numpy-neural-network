@@ -13,7 +13,8 @@ matplotlib.rcParams['toolbar'] = 'None'
 
 ################################################################################
 
-model = npnn.network.Model([
+model = npnn.Sequential()
+model.layers = [
     npnn.Pad2D(shape_in=(10, 10, 1), pad_axis0=2, pad_axis1=2),
     npnn.Conv2D(shape_in=(14, 14, 1), shape_out=(10, 10, 6), kernel_size=5, stride=1),
     npnn.LeakyReLU(10 * 10 * 6),
@@ -27,16 +28,18 @@ model = npnn.network.Model([
 
     npnn.Dense((1, 1, 10), 4),
     npnn.Softmax(4)
-])
+]
 
-model.loss_layer = npnn.loss_layer.CrossEntropyLoss(4)
+loss_layer = npnn.loss_layer.CrossEntropyLoss(4)
+optimizer  = npnn.optimizer.Adam(alpha=1e-2)
+dataset    = npnn_datasets.FourImgClasses()
 
-optimizer = npnn.optimizer.Adam(model, alpha=1e-2)
-
-optimizer.dataset = npnn_datasets.FourImgClasses()
+optimizer.norm  = dataset.norm
+optimizer.model = model
+optimizer.model.chain = loss_layer
 
 # because of the small dataset, use all data every time for validation loss calculation ...
-optimizer.dataset.validation_batch_size = optimizer.dataset.num_validation_data
+dataset.validation_batch_size = dataset.num_validation_data
 
 ################################################################################
 
@@ -61,7 +64,7 @@ valid_accuracy = []
 for episode in np.arange(2500):
 
     # step the optimizer ...
-    optimizer.step()
+    optimizer.step(*dataset.get_train_batch())
     episodes.append(episode)
 
     #===========================================================================
@@ -80,28 +83,28 @@ for episode in np.arange(2500):
 
     ax2.cla()
     ax2.set_xlabel('episode')
-    ax2.set_ylabel('train mini-batch accuracy [%]')
-    ax2.set_ylim(-5, 105)
+    ax2.set_ylabel('train mini-batch accuracy')
+    ax2.set_ylim(-0.05, 1.05)
     ax2.plot(episodes, mini_train_accuracy)
 
     #===========================================================================
     # complete dataset loss and accuracy
     #===========================================================================
 
-    optimizer.predict(optimizer.dataset.x_train_data, optimizer.dataset.y_train_data)
+    optimizer.predict(dataset.x_train_data, dataset.y_train_data)
     tloss = optimizer.loss
     taccuracy = optimizer.accuracy
     train_loss.append(np.mean(tloss))
     train_accuracy.append(taccuracy)
 
-    y_predicted_data = optimizer.predict(optimizer.dataset.x_validation_data, optimizer.dataset.y_validation_data)
+    y_predicted_data = optimizer.predict(dataset.x_validation_data, dataset.y_validation_data)
     vloss = optimizer.loss
     vaccuracy = optimizer.accuracy
     valid_loss.append(np.mean(vloss))
     valid_accuracy.append(vaccuracy)
 
     # print the episode and loss values ...
-    print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}, taccuracy = {3:5.3f}%, vaccuracy = {3:5.3f}%".format(
+    print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}, taccuracy = {3:5.3f}, vaccuracy = {3:5.3f}".format(
         episode, np.mean(tloss), np.mean(vloss), taccuracy, vaccuracy
     ))
 
@@ -114,38 +117,38 @@ for episode in np.arange(2500):
 
     ax4.cla()
     ax4.set_xlabel('episode')
-    ax4.set_ylabel('dataset accuracy [%]')
-    ax4.set_ylim(-5, 105)
+    ax4.set_ylabel('dataset accuracy')
+    ax4.set_ylim(-0.05, 1.05)
     ax4.plot(episodes, train_accuracy, episodes, valid_accuracy)
 
     #===========================================================================
     # batch network output plots
     #===========================================================================
 
-    k = np.arange(optimizer.dataset.num_validation_data)
+    k = np.arange(dataset.num_validation_data)
 
     ax1b.cla()
     ax1b.set_ylabel('mini-batch class 0')
     ax1b.set_ylim(-0.1, 1.1)
-    ax1b.scatter(k, optimizer.dataset.y_validation_data[:,0], s=10, c='tab:green')
+    ax1b.scatter(k, dataset.y_validation_data[:,0], s=10, c='tab:green')
     ax1b.scatter(k, y_predicted_data[:,0], s=10, c='tab:orange')
 
     ax2b.cla()
     ax2b.set_ylabel('mini-batch class 1')
     ax2b.set_ylim(-0.1, 1.1)
-    ax2b.scatter(k, optimizer.dataset.y_validation_data[:,1], s=10, c='tab:green')
+    ax2b.scatter(k, dataset.y_validation_data[:,1], s=10, c='tab:green')
     ax2b.scatter(k, y_predicted_data[:,1], s=10, c='tab:orange')
 
     ax3b.cla()
     ax3b.set_ylabel('mini-batch class 2')
     ax3b.set_ylim(-0.1, 1.1)
-    ax3b.scatter(k, optimizer.dataset.y_validation_data[:,2], s=10, c='tab:green')
+    ax3b.scatter(k, dataset.y_validation_data[:,2], s=10, c='tab:green')
     ax3b.scatter(k, y_predicted_data[:,2], s=10, c='tab:orange')
 
     ax4b.cla()
     ax4b.set_ylabel('mini-batch class 3')
     ax4b.set_ylim(-0.1, 1.1)
-    ax4b.scatter(k, optimizer.dataset.y_validation_data[:,3], s=10, c='tab:green')
+    ax4b.scatter(k, dataset.y_validation_data[:,3], s=10, c='tab:green')
     ax4b.scatter(k, y_predicted_data[:,3], s=10, c='tab:orange')
 
     #===========================================================================
