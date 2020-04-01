@@ -8,6 +8,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy_neural_network as npnn
 import npnn_datasets
+from numpy_neural_network import Sequential
 
 matplotlib.rcParams['toolbar'] = 'None'
 
@@ -22,7 +23,31 @@ encoder_model.layers = [
     npnn.Latent(shape_in=(1, 1, 2))
 ]
 
-decoder_model = npnn.Sequential()
+
+decoder_steps_per_encoder_step = 10
+
+class DecoderSequential(Sequential):
+
+    def step(self, x=None, t=None):  # override of Sequential step method
+        global decoder_steps_per_encoder_step
+
+        g_dec = np.zeros(x.shape)
+
+        for _ in np.arange(decoder_steps_per_encoder_step):
+            x_dec = x.copy()
+            t_dec = t.copy()
+
+            x_dec = self.forward(x_dec)
+            g, y_dec = self.chain.step(x=x_dec, t=t_dec)
+            g_dec += self.backward(g)
+
+        g_dec         = g_dec               / decoder_steps_per_encoder_step  # TODO really divide grad by batch size ?
+        self.loss     = self.chain.loss     / decoder_steps_per_encoder_step
+        self.accuracy = self.chain.accuracy / decoder_steps_per_encoder_step
+        return g_dec, y_dec
+
+
+decoder_model = DecoderSequential()
 decoder_model.layers = [
     npnn.Sample(shape_out=(1, 1, 2)),
     npnn.UpConv2D(shape_in=(1, 1, 2), shape_out=(2, 2, 6), kernel_size=2, stride=1),
