@@ -17,6 +17,7 @@ class Layer:
         self.grad_w = np.zeros(self.shape_w)
         self.grad_wb = np.zeros(self.shape_out)
 
+        self.batch_size = 1
         self.is_training = False
 
         # optimizer dependent values, which will get
@@ -54,6 +55,7 @@ class Layer:
         self.grad_x = np.zeros(self.shape_in)
         self.grad_w = np.zeros(self.shape_w)
         self.grad_wb = np.zeros(self.shape_out)
+        self.batch_size = 1
 
     def init_w(self):
         '''
@@ -68,5 +70,9 @@ class Layer:
         self.is_training = is_training
 
     def update_weights(self, callback):
+        self.grad_w /= self.batch_size
+        self.grad_wb /= self.batch_size
+        self.batch_size = 1
+
         callback(self)
 

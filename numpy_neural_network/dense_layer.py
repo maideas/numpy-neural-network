@@ -21,6 +21,7 @@ class Dense(Layer):
         return self.y
 
     def backward(self, grad_y):
+        self.batch_size += 1
         self.grad_wb += grad_y
 
         grad_y = grad_y.ravel()
