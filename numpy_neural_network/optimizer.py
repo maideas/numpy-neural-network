@@ -53,12 +53,13 @@ class Optimizer:
 
 
     #@profile
-    def step(self, x_batch=None, t_batch=None):
+    def step(self, x_batch=None, t_batch=None, c_batch=None):
         '''
         stochastic mini batch optimization step
         '''
         self.train_x_batch = x_batch
         self.train_t_batch = t_batch
+        self.train_c_batch = c_batch
 
         if self.norm is not None:
             # normalize network (input, output) training data ...
@@ -100,7 +101,7 @@ class Optimizer:
 
 
     #@profile
-    def predict(self, x_batch, t_batch=None):
+    def predict(self, x_batch, t_batch=None, c_batch=None):
         '''
         network model forward path calculation (prediction) of a given x batch
         x_batch : network model input data

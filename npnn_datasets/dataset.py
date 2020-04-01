@@ -71,14 +71,14 @@ class DataSet:
             batch_size = self.train_batch_size
 
         idx = np.random.randint(self.num_train_data, size=batch_size)
-        return (self.x_train_data[idx], self.y_train_data[idx])
+        return self.x_train_data[idx], self.y_train_data[idx], self.c_train_data[idx]
 
     def get_validation_batch(self, batch_size=None):
         if not batch_size:
             batch_size = self.validation_batch_size
 
         idx = np.random.randint(self.num_validation_data, size=batch_size)
-        return self.x_validation_data[idx], self.y_validation_data[idx]
+        return self.x_validation_data[idx], self.y_validation_data[idx], self.c_validation_data[idx]
 
 
     def get_mean_and_variance(self, data):
