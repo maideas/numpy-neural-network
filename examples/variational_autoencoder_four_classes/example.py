@@ -53,7 +53,9 @@ decoder_model.layers = [
     npnn.UpConv2D(shape_in=(1, 1, 2), shape_out=(2, 2, 6), kernel_size=2, stride=1),
     npnn.Tanh(2 * 2 * 6),
     npnn.UpConv2D(shape_in=(2, 2, 6), shape_out=(3, 3, 1), kernel_size=2, stride=1),
-    npnn.Tanh(3 * 3 * 1)
+    npnn.Tanh(3 * 3 * 1),
+    npnn.Dense(shape_in=(3, 3, 1), shape_out=(3, 3, 1)),
+    npnn.Linear(3 * 3 * 1)
 ]
 
 latent_layer = encoder_model.layers[4]
@@ -187,10 +189,17 @@ for episode in np.arange(2000):
     #===========================================================================
 
     ax4.cla()
-    ax4.set_xlabel('2D latent space (training)')
-    ax4.set_xlim(min(-5.0, 1.1*min(train_z[:,0])), max(5.0, 1.1*max(train_z[:,0])))
-    ax4.set_ylim(min(-5.0, 1.1*min(train_z[:,1])), max(5.0, 1.1*max(train_z[:,1])))
-    ax4.scatter(train_z[:,0], train_z[:,1], s=4)
+    ax4.set_xlabel('2D latent space')
+    ax4.set_xlim(min(-8.0, 1.1*min(train_z[:,0])), max(8.0, 1.1*max(train_z[:,0])))
+    ax4.set_ylim(min(-8.0, 1.1*min(train_z[:,1])), max(8.0, 1.1*max(train_z[:,1])))
+    for n in np.arange(4):
+        train_c_batch = optimizer.train_c_batch.ravel()
+        decoder_c = np.repeat(train_c_batch, decoder_steps_per_encoder_step, axis=0)
+        class_z = np.array([z for z, c in zip(train_z, decoder_c) if c == n])
+        if class_z.shape[0] > 0:
+            ax4.scatter(class_z[:,0], class_z[:,1], s=4)
+        else:
+            ax4.scatter(0, 0, s=4)
 
     #===========================================================================
 
@@ -201,7 +210,10 @@ for episode in np.arange(2000):
 
     for n in np.arange(4):
         x_variance = np.array([d for d, c in zip(latent_variance, latent_classes) if c == n])
-        ax5.scatter(x_variance[:,0], x_variance[:,1], s=4)
+        if x_variance.shape[0] > 0:
+            ax5.scatter(x_variance[:,0], x_variance[:,1], s=4)
+        else:
+            ax5.scatter(0, 0, s=4)
 
     #===========================================================================
 
@@ -212,7 +224,10 @@ for episode in np.arange(2000):
 
     for n in np.arange(4):
         x_mean = np.array([d for d, c in zip(latent_mean, latent_classes) if c == n])
-        ax6.scatter(x_mean[:,0], x_mean[:,1], s=4)
+        if x_mean.shape[0] > 0:
+            ax6.scatter(x_mean[:,0], x_mean[:,1], s=4)
+        else:
+            ax6.scatter(0, 0, s=4)
 
     #===========================================================================
     # draw and save PNG to generate video files later on
