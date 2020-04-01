@@ -22,16 +22,13 @@ class Sample(Layer):
         self.x_variance = x[:,:,:self.shape_out[2]]
         self.x_mean     = x[:,:,self.shape_out[2]:]
 
-        if self.is_training:
-            # the mean of gausian sampled variance mean(x_mean + N(0, I)) is 0, which
-            # means that x_mean represents the mean vector of the distribution
-            self.y = self.x_mean + self.x_variance * np.random.normal(0.0, 1.0, self.x_variance.shape)
+        # the mean of gausian sampled variance mean(x_mean + N(0, I)) is 0, which
+        # means that x_mean represents the mean vector of the distribution
+        self.y = self.x_mean + self.x_variance * np.random.normal(0.0, 1.0, self.x_variance.shape)
 
+        if self.is_training:
             if self.train_z is not None:
                 self.train_z.append(self.y)  # collect hidden state z data for evaluation
-        else:
-            # non-training mode z = hidden state mean (its the expected value) ...
-            self.y = self.x_mean + self.x_variance
 
         return self.y
 
