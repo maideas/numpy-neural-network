@@ -74,7 +74,7 @@ class FourSmallImages(DataSet):
             self.c_data[k] = 3
             k += 1
 
-        self.x_data += np.random.normal(0.0, 0.1, self.x_data.shape)
+        self.x_data += np.random.normal(0.0, 0.2, self.x_data.shape)
         self.y_data = self.x_data.copy()
 
         self.prepare(train_fraction, normalize_x=True, normalize_y=True)
