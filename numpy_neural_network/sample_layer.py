@@ -22,7 +22,7 @@ class Sample(Layer):
         self.x_variance = x[:,:,:self.shape_out[2]]
         self.x_mean     = x[:,:,self.shape_out[2]:]
 
-        # the mean of gausian sampled variance mean(x_mean + N(0, I)) is 0, which
+        # the mean of gaussian sampled variance mean(x_mean + N(0, I)) is 0, which
         # means that x_mean represents the mean vector of the distribution
         self.y = self.x_mean + self.x_variance * np.random.normal(0.0, 1.0, self.x_variance.shape)
 
