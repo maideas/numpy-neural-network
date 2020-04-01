@@ -24,7 +24,7 @@ encoder_model.layers = [
 ]
 
 
-decoder_steps_per_encoder_step = 10
+decoder_steps_per_encoder_step = 25
 
 class DecoderSequential(Sequential):
 
@@ -41,7 +41,7 @@ class DecoderSequential(Sequential):
             g, y_dec = self.chain.step(x=x_dec, t=t_dec)
             g_dec += self.backward(g)
 
-        g_dec         = g_dec               / decoder_steps_per_encoder_step  # TODO really divide grad by batch size ?
+        g_dec         = g_dec               / decoder_steps_per_encoder_step
         self.loss     = self.chain.loss     / decoder_steps_per_encoder_step
         self.accuracy = self.chain.accuracy / decoder_steps_per_encoder_step
         return g_dec, y_dec
