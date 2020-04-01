@@ -52,7 +52,10 @@ class DataSet:
         self.x_validation_data = self.x_data[idx_validation]
         self.y_validation_data = self.y_data[idx_validation]
 
-        if self.c_data is not None:
+        if self.c_data is None:
+            self.c_train_data = np.zeros(self.num_train_data)
+            self.c_validation_data = np.zeros(self.num_validation_data)
+        else:
             self.c_train_data = self.c_data[idx_train]
             self.c_validation_data = self.c_data[idx_validation]
 
