@@ -97,7 +97,7 @@ for episode in np.arange(400):
     # complete dataset loss and accuracy
     #===========================================================================
 
-    x_validation_batch, t_validation_batch = dataset.get_validation_batch()
+    x_validation_batch, t_validation_batch, _ = dataset.get_validation_batch()
     y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
 
     vloss = np.mean(optimizer.loss)

@@ -60,7 +60,7 @@ for episode in np.arange(200):
     train_accuracy_y.append(taccuracy)
 
     # calculate and append the validation loss ...
-    x_validation_batch, t_validation_batch = dataset.get_validation_batch()
+    x_validation_batch, t_validation_batch, _ = dataset.get_validation_batch()
     y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
 
     vloss = np.mean(optimizer.loss)
