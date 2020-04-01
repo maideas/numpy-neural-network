@@ -31,24 +31,14 @@ class Sample(Layer):
                 self.train_z.append(self.y)  # collect hidden state z data for evaluation
         else:
             # non-training mode z = hidden state mean (its the expected value) ...
-            self.y = self.x_mean
+            self.y = self.x_mean + self.x_variance
 
         return self.y
 
     def backward(self, grad_y):
 
-        # KL mean gradient = derivative of: 0.5*(x_mean^2) ...
-        kl_mean_grad = self.x_mean
-
-        # KL variance gradient = derivative of: 0.5*(x_variance - log(variance) - 1) ...
-        kl_variance_grad = 0.5 - np.divide(0.5, self.x_variance + 1e-9)
-
-        # combine the gradients from the decoder with the KL gradients ...
-        grad_y_mean     = grad_y + kl_mean_grad
-        grad_y_variance = grad_y + kl_variance_grad
-
-        self.grad_x[:,:,:self.shape_out[2]] = grad_y_variance
-        self.grad_x[:,:,self.shape_out[2]:] = grad_y_mean
+        self.grad_x[:,:,:self.shape_out[2]] = grad_y
+        self.grad_x[:,:,self.shape_out[2]:] = grad_y
 
         return self.grad_x
 

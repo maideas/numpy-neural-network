@@ -45,13 +45,8 @@ class Latent(Layer):
 
     def forward(self, x):
 
-        self.x_mean = x.copy()
-        for layer in self.latent_mean_model.layers:
-            self.x_mean = layer.forward(self.x_mean)
-
-        self.x_variance = x.copy()
-        for layer in self.latent_variance_model.layers:
-            self.x_variance = layer.forward(self.x_variance)
+        self.x_variance = self.latent_variance_model.forward(x.copy())
+        self.x_mean     = self.latent_mean_model.forward(x.copy())
 
         self.y[:,:,:self.shape_in[2]] = self.x_variance
         self.y[:,:,self.shape_in[2]:] = self.x_mean
@@ -61,8 +56,18 @@ class Latent(Layer):
 
     def backward(self, grad_y):
 
-        grad_y_variance = grad_y[:,:,:self.shape_in[2]]
-        grad_y_mean     = grad_y[:,:,self.shape_in[2]:]
+        # KL mean gradient = derivative of: 0.5*(x_mean^2) ...
+        kl_mean_grad = self.x_mean
+
+        # KL variance gradient = derivative of: 0.5*(x_variance - log(variance) - 1) ...
+        kl_variance_grad = 0.5 - np.divide(0.5, self.x_variance + 1e-9)
+
+        # combine the gradients from the decoder with the KL gradients ...
+        grad_y_variance = 0.5 * grad_y[:,:,:self.shape_in[2]] + kl_variance_grad
+        grad_y_mean     = 0.5 * grad_y[:,:,self.shape_in[2]:] + kl_mean_grad
+
+        grad_y_variance = self.latent_variance_model.backward(grad_y_variance)
+        grad_y_mean     = self.latent_mean_model.backward(grad_y_mean)
 
         self.grad_x = grad_y_mean + grad_y_variance
         return self.grad_x
