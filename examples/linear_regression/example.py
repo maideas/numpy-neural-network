@@ -42,7 +42,7 @@ episodes = []
 train_loss_y = []
 validation_loss_y = []
 
-for episode in np.arange(200):
+for episode in np.arange(250):
 
     # plot the green dataset points ...
     x = dataset.x_data
