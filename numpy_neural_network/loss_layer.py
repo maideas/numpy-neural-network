@@ -11,7 +11,7 @@ class LossLayer:
         self.chain = None
         self.loss = np.zeros(self.shape_in)
         self.accuracy = 0.0
-        self.batch_size_count = 1
+        self.batch_size_count = 0
 
     def forward(self, x, t):
         return x
@@ -51,12 +51,11 @@ class LossLayer:
         self.accuracy = 0.0
         if self.chain is not None:
             self.chain.zero_grad()
-        self.batch_size_count = 1
+        self.batch_size_count = 0
 
     def update_weights(self, callback):
         if self.chain is not None:
             self.chain.update_weights(callback=callback)
-        self.batch_size_count = 1
 
     def accuracy_increment(self, x, t):
         if self.__class__.__name__ == "CrossEntropyLoss":
@@ -69,10 +68,14 @@ class LossLayer:
         return 0.0
 
     def get_loss(self):
-        return np.mean(self.loss) / self.batch_size_count
+        if self.batch_size_count > 0:
+            return np.mean(self.loss) / self.batch_size_count
+        return 0.0
 
     def get_accuracy(self):
-        return self.accuracy / self.batch_size_count
+        if self.batch_size_count > 0:
+            return self.accuracy / self.batch_size_count
+        return 0.0
 
 
 class RMSLoss(LossLayer):
