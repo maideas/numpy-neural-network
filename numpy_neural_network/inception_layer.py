@@ -115,23 +115,10 @@ class Inception(Layer):
         ]
 
     def forward(self, x):
-        '''
-        data forward path
-        returns : layer output data
-        '''
-        b0_x = x
-        b1_x = x
-        b2_x = x
-        b3_x = x
-
-        for layer in self.branches[0].layers:
-            b0_x = layer.forward(b0_x)
-        for layer in self.branches[1].layers:
-            b1_x = layer.forward(b1_x)
-        for layer in self.branches[2].layers:
-            b2_x = layer.forward(b2_x)
-        for layer in self.branches[3].layers:
-            b3_x = layer.forward(b3_x)
+        b0_x = self.branches[0].forward(x)
+        b1_x = self.branches[1].forward(x)
+        b2_x = self.branches[2].forward(x)
+        b3_x = self.branches[3].forward(x)
 
         y = np.zeros(self.shape_out)
 
@@ -154,10 +141,6 @@ class Inception(Layer):
         return y
 
     def backward(self, grad_y):
-        '''
-        gradients backward path
-        returns : layer input gradients
-        '''
         start, size =   0, self.b0_c1_d_out
         end = start + size
         b0_grad_y = grad_y[:,:,start:end]
@@ -174,52 +157,28 @@ class Inception(Layer):
         end = start + size
         b3_grad_y = grad_y[:,:,start:end]
 
-        for layer in self.branches[0].layers[::-1]:
-            b0_grad_y = layer.backward(b0_grad_y)
-        for layer in self.branches[1].layers[::-1]:
-            b1_grad_y = layer.backward(b1_grad_y)
-        for layer in self.branches[2].layers[::-1]:
-            b2_grad_y = layer.backward(b2_grad_y)
-        for layer in self.branches[3].layers[::-1]:
-            b3_grad_y = layer.backward(b3_grad_y)
-
         self.grad_x = np.zeros(self.shape_in)
-        self.grad_x += b0_grad_y
-        self.grad_x += b1_grad_y
-        self.grad_x += b2_grad_y
-        self.grad_x += b3_grad_y
+        self.grad_x += self.branches[0].backward(b0_grad_y)
+        self.grad_x += self.branches[1].backward(b1_grad_y)
+        self.grad_x += self.branches[2].backward(b2_grad_y)
+        self.grad_x += self.branches[3].backward(b3_grad_y)
 
         return self.grad_x
 
     def zero_grad(self):
-        '''
-        set all gradient values to zero
-        '''
         for branch in self.branches:
-            for layer in branch.layers:
-                layer.zero_grad()
+            branch.zero_grad()
 
     def init_w(self):
-        '''
-        weight initialization
-        '''
         for branch in self.branches:
-            for layer in branch.layers:
-                layer.init_w()
+            branch.init_w()
 
     def step_init(self, is_training=False):
-        '''
-        this method may initialize some layer internals before each optimizer mini-batch step
-        '''
         for branch in self.branches:
-            for layer in branch.layers:
-                layer.step_init(is_training=is_training)
+            branch.step_init(is_training=is_training)
 
     def update_weights(self, callback):
-        '''
-        weight update
-        '''
         for branch in self.branches:
-            for layer in branch.layers:
-                layer.update_weights(callback=callback)
+            branch.update_weights(callback=callback)
+
 
