@@ -54,8 +54,9 @@ for episode in np.arange(200):
     episodes.append(episode)
 
     # append the optimizer step train loss ...
-    tloss = np.mean(optimizer.loss)
-    taccuracy = optimizer.accuracy
+    tloss = loss_layer.get_loss()
+    taccuracy = loss_layer.get_accuracy()
+
     train_loss_y.append(tloss)
     train_accuracy_y.append(taccuracy)
 
@@ -63,14 +64,14 @@ for episode in np.arange(200):
     x_validation_batch, t_validation_batch, _ = dataset.get_validation_batch()
     y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
 
-    vloss = np.mean(optimizer.loss)
-    vaccuracy = optimizer.accuracy
+    vloss = loss_layer.get_loss()
+    vaccuracy = loss_layer.get_accuracy()
 
     validation_loss_y.append(vloss)
     validation_accuracy_y.append(vaccuracy)
 
     # print the episode and loss values ...
-    print("episode = {0:5d}, tloss = {2:5.3f}, vloss = {2:5.3f}".format(episode, tloss, vloss))
+    print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}".format(episode, tloss, vloss))
 
     # print the train loss (blue) and validation loss (orange) ...
     ax1.cla()

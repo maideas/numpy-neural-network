@@ -64,11 +64,13 @@ sample_layer.train_z = []
 
 ################################################################################
 
-loss_layer = npnn.loss_layer.RMSLoss(shape_in=(3, 3, 1))
-optimizer  = npnn.optimizer.Adam(alpha=5e-3)
-dataset    = npnn_datasets.FourSmallImages()
+kl_loss_layer = npnn.loss_layer.KullbackLeiblerLoss(shape_in=(1, 1, 4))
+loss_layer    = npnn.loss_layer.RMSLoss(shape_in=(3, 3, 1))
+optimizer     = npnn.optimizer.Adam(alpha=5e-3)
+dataset       = npnn_datasets.FourSmallImages()
 
-encoder_model.chain = decoder_model
+encoder_model.chain = kl_loss_layer
+kl_loss_layer.chain = decoder_model
 decoder_model.chain = loss_layer
 
 optimizer.norm  = dataset.norm
@@ -115,7 +117,7 @@ for episode in np.arange(2000):
     # mini batch loss
     #===========================================================================
 
-    mini_train_loss.append(np.mean(optimizer.loss))
+    mini_train_loss.append(loss_layer.get_loss())
 
     ax1.cla()
     ax1.set_xlabel('episode')
@@ -129,17 +131,21 @@ for episode in np.arange(2000):
     #===========================================================================
 
     optimizer.predict(dataset.x_train_data, dataset.y_train_data)
-    tloss = optimizer.loss
-    train_loss.append(np.mean(tloss))
-    mini_train_kl_loss.append(latent_layer.kl_loss / dataset.num_train_data)
+    
+    tloss = loss_layer.get_loss()
+    train_loss.append(tloss)
+
+    kl_loss = kl_loss_layer.get_loss()
+    mini_train_kl_loss.append(kl_loss)
 
     y_predicted_data = optimizer.predict(dataset.x_validation_data, dataset.y_validation_data)
-    vloss = optimizer.loss
-    valid_loss.append(np.mean(vloss))
+
+    vloss = loss_layer.get_loss()
+    valid_loss.append(vloss)
 
     # print the episode and loss values ...
     print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}".format(
-        episode, np.mean(tloss), np.mean(vloss)
+        episode, tloss, vloss
     ))
 
     ax2.cla()
@@ -171,8 +177,10 @@ for episode in np.arange(2000):
 
     #===========================================================================
 
-    optimizer.predict(dataset.x_validation_data)
-    mini_validation_kl_loss.append(latent_layer.kl_loss / dataset.num_validation_data)
+    optimizer.predict(dataset.x_validation_data, dataset.y_validation_data)
+
+    kl_loss = kl_loss_layer.get_loss()
+    mini_validation_kl_loss.append(kl_loss)
 
     #===========================================================================
 

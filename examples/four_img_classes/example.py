@@ -71,8 +71,8 @@ for episode in np.arange(2500):
     # mini batch loss and accuracy
     #===========================================================================
 
-    mini_train_loss.append(np.mean(optimizer.loss))
-    mini_train_accuracy.append(optimizer.accuracy)
+    mini_train_loss.append(loss_layer.get_loss())
+    mini_train_accuracy.append(loss_layer.get_accuracy())
 
     ax1.cla()
     ax1.set_xlabel('episode')
@@ -92,19 +92,19 @@ for episode in np.arange(2500):
     #===========================================================================
 
     optimizer.predict(dataset.x_train_data, dataset.y_train_data)
-    tloss = optimizer.loss
-    taccuracy = optimizer.accuracy
-    train_loss.append(np.mean(tloss))
+    tloss = loss_layer.get_loss()
+    taccuracy = loss_layer.get_accuracy()
+    train_loss.append(tloss)
     train_accuracy.append(taccuracy)
 
     y_predicted_data = optimizer.predict(dataset.x_validation_data, dataset.y_validation_data)
-    vloss = optimizer.loss
-    vaccuracy = optimizer.accuracy
-    valid_loss.append(np.mean(vloss))
+    vloss = loss_layer.get_loss()
+    vaccuracy = loss_layer.get_accuracy()
+    valid_loss.append(vloss)
     valid_accuracy.append(vaccuracy)
 
     # print the episode and loss values ...
-    print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}, taccuracy = {3:5.3f}, vaccuracy = {3:5.3f}".format(
+    print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}, taccuracy = {3:5.3f}, vaccuracy = {4:5.3f}".format(
         episode, np.mean(tloss), np.mean(vloss), taccuracy, vaccuracy
     ))
 

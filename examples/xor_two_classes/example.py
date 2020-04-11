@@ -56,25 +56,25 @@ for episode in np.arange(200):
     episodes.append(episode)
 
     # append the optimizer step train loss ...
-    tloss = optimizer.loss
-    taccuracy = optimizer.accuracy
-    train_loss_y0.append(tloss[0])
-    train_loss_y1.append(tloss[1])
+    tloss = loss_layer.get_loss()
+    taccuracy = loss_layer.get_accuracy()
+    train_loss_y0.append(loss_layer.loss[0] / loss_layer.batch_size_count)
+    train_loss_y1.append(loss_layer.loss[1] / loss_layer.batch_size_count)
     train_accuracy_y.append(taccuracy)
 
     # calculate and append the validation loss ...
     x_validation_batch, t_validation_batch, _ = dataset.get_validation_batch()
     y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
 
-    vloss = optimizer.loss
-    vaccuracy = optimizer.accuracy
+    vloss = loss_layer.get_loss()
+    vaccuracy = loss_layer.get_accuracy()
 
-    validation_loss_y0.append(vloss[0])
-    validation_loss_y1.append(vloss[1])
+    validation_loss_y0.append(loss_layer.loss[0] / loss_layer.batch_size_count)
+    validation_loss_y1.append(loss_layer.loss[1] / loss_layer.batch_size_count)
     validation_accuracy_y.append(vaccuracy)
 
     # print the episode and loss values ...
-    print("episode = {0:5d}, tloss = {2:5.3f}, vloss = {2:5.3f}".format(episode, tloss[0], vloss[0]))
+    print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}".format(episode, tloss, vloss))
 
     # print the train loss (blue) and validation loss (orange) ...
     ax1.cla()

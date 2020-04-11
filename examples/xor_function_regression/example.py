@@ -66,18 +66,18 @@ for episode in np.arange(300):
     episodes.append(episode)
 
     # append the optimizer step train loss ...
-    tloss = np.mean(optimizer.loss)
+    tloss = loss_layer.get_loss()
     train_loss_y.append(tloss)
 
     # calculate and append the validation loss ...
     x_validation_batch, t_validation_batch, _ = dataset.get_validation_batch()
     y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
 
-    vloss = np.mean(optimizer.loss)
+    vloss = loss_layer.get_loss()
     validation_loss_y.append(vloss)
 
     # print the episode and loss values ...
-    print("episode = {0:5d}, tloss = {2:5.3f}, vloss = {2:5.3f}".format(episode, tloss, vloss))
+    print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}".format(episode, tloss, vloss))
 
     # print the train loss (blue) and validation loss (orange) ...
     ax2.cla()

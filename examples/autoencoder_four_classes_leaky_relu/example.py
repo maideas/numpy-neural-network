@@ -60,7 +60,7 @@ for episode in np.arange(200):
     # mini batch loss
     #===========================================================================
 
-    mini_train_loss.append(np.mean(optimizer.loss))
+    mini_train_loss.append(loss_layer.get_loss())
 
     ax1.cla()
     ax1.set_xlabel('episode')
@@ -74,16 +74,16 @@ for episode in np.arange(200):
     #===========================================================================
 
     optimizer.predict(dataset.x_train_data, dataset.y_train_data)
-    tloss = optimizer.loss
-    train_loss.append(np.mean(tloss))
+    tloss = np.mean(loss_layer.get_loss())
+    train_loss.append(tloss)
 
     y_predicted_data = optimizer.predict(dataset.x_validation_data, dataset.y_validation_data)
-    vloss = optimizer.loss
-    valid_loss.append(np.mean(vloss))
+    vloss = np.mean(loss_layer.get_loss())
+    valid_loss.append(vloss)
 
     # print the episode and loss values ...
     print("episode = {0:5d}, tloss = {1:5.3f}, vloss = {2:5.3f}".format(
-        episode, np.mean(tloss), np.mean(vloss)
+        episode, tloss, vloss
     ))
 
     ax2.cla()

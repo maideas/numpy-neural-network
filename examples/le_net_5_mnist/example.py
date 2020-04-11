@@ -66,8 +66,8 @@ for episode in np.arange(400):
     # mini batch loss and accuracy
     #===========================================================================
 
-    tloss = np.mean(optimizer.loss)
-    taccuracy = optimizer.accuracy
+    tloss = loss_layer.get_loss()
+    taccuracy = loss_layer.get_accuracy()
 
     mini_train_loss.append(tloss)
     mini_train_accuracy.append(taccuracy)
@@ -92,8 +92,8 @@ for episode in np.arange(400):
     x_validation_batch, t_validation_batch, _ = dataset.get_validation_batch()
     y_validation_batch = optimizer.predict(x_validation_batch, t_validation_batch)
 
-    vloss = np.mean(optimizer.loss)
-    vaccuracy = optimizer.accuracy
+    vloss = loss_layer.get_loss()
+    vaccuracy = loss_layer.get_accuracy()
 
     mini_validation_loss.append(vloss)
     mini_validation_accuracy.append(vaccuracy)
