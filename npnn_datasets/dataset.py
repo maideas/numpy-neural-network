@@ -99,6 +99,22 @@ class DataSet:
         return (data * variance) + mean
 
 
+    def get_partial_dataset(self, x_data_in, y_data_in, c_data_in, num_classes, samples_per_class):
+        x_data = []
+        y_data = []
+        c_data = []
+        samples = np.zeros(num_classes)
+
+        for x, y, c in zip(x_data_in, y_data_in, c_data_in):
+            if samples[c] < samples_per_class:
+                c_data.append(c)
+                y_data.append(y)
+                x_data.append(x)
+                samples[c] += 1
+
+        return np.array(x_data), np.array(y_data), np.array(c_data)
+
+
     def print_data_element(self, element):
 
         if len(element.shape) == 1:
