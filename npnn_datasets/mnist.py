@@ -2,6 +2,7 @@
 import os
 import numpy as np
 from npnn_datasets import DataSet
+from PIL import Image
 
 class MNIST(DataSet):
 
@@ -15,7 +16,20 @@ class MNIST(DataSet):
         self.x_data = train.images
         self.y_data = train.labels
 
+        #self.save_png_files()
+
         self.prepare(train_fraction, normalize_x=True, normalize_y=False)
+
+
+    def save_png_files(self):
+        for n in np.arange(self.x_data.shape[0]):
+            img = Image.fromarray(np.array(self.x_data[n]).reshape((28, 28)))
+            for c in np.arange(10):
+                if self.y_data[n][c] > 0.5:
+                    img.save("mnist_28x28/mnist_{0}_{1:05d}.png".format(c, n))
+                    img = img.resize((14, 14), resample=Image.BILINEAR)
+                    img.save("mnist_14x14/mnist_{0}_{1:05d}.png".format(c, n))
+        exit()
 
 
 # ==============================================================================
