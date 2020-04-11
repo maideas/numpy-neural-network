@@ -8,8 +8,6 @@ class Sequential(Layer):
         super(Sequential, self).__init__(shape_in, shape_out, None)
         self.layers = []
         self.chain = None
-        self.loss = np.array([0.0])
-        self.accuracy = 0.0
 
     def forward(self, x):
         for layer in self.layers:
@@ -23,34 +21,40 @@ class Sequential(Layer):
 
     def step(self, x=None, t=None):
         x = self.forward(x)
-        g, y = self.chain.step(x=x, t=t)
-        g = self.backward(g)
 
-        self.loss     = self.chain.loss
-        self.accuracy = self.chain.accuracy
+        if self.chain is not None:
+            g, y = self.chain.step(x=x, t=t)
+            g = self.backward(g)
+        else:
+            y = x
+            g = self.backward(np.zeros(self.shape_out))
+
         return g, y
 
     def predict(self, x, t=None):
         for layer in self.layers:
             x = layer.forward(x)
-        x = self.chain.predict(x, t)
 
-        self.loss     = self.chain.loss
-        self.accuracy = self.chain.accuracy
+        if self.chain is not None:
+            x = self.chain.predict(x, t)
+
         return x
 
     def zero_grad(self):
         for layer in self.layers:
             layer.zero_grad()
-        self.chain.zero_grad()
+        if self.chain is not None:
+            self.chain.zero_grad()
 
     def step_init(self, is_training):
         for layer in self.layers:
             layer.step_init(is_training=is_training)
-        self.chain.step_init(is_training=is_training)
+        if self.chain is not None:
+            self.chain.step_init(is_training=is_training)
 
     def update_weights(self, callback):
         for layer in self.layers:
             layer.update_weights(callback)
-        self.chain.update_weights(callback)
+        if self.chain is not None:
+            self.chain.update_weights(callback)
 

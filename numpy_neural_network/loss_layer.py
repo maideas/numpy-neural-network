@@ -8,8 +8,10 @@ class LossLayer:
         self.shape_in = shape_in
         self.x = np.zeros(self.shape_in)
         self.t = np.zeros(self.shape_in)
+        self.chain = None
         self.loss = np.zeros(self.shape_in)
         self.accuracy = 0.0
+        self.batch_size_count = 1
 
     def forward(self, x, t):
         return x
@@ -19,24 +21,42 @@ class LossLayer:
 
     def step(self, x, t):
         self.accuracy += self.accuracy_increment(x, t)
-        y = self.forward(x, t)
-        g = self.backward()
+        x = self.forward(x, t)
+
+        if self.chain is not None:
+            g, y = self.chain.step(x=x, t=t)
+            g = self.backward(g)
+        else:
+            y = x
+            g = self.backward()
+
         return g, y
 
     def predict(self, x, t=None):
         if t is not None:
             self.accuracy += self.accuracy_increment(x, t)
-            y = self.forward(x, t)
-        else:
-            y = x
-        return y
+            x = self.forward(x, t)
+
+        if self.chain is not None:
+            x = self.chain.predict(x, t)
+
+        return x
 
     def step_init(self, is_training):
-        pass
+        if self.chain is not None:
+            self.chain.step_init(is_training=is_training)
 
     def zero_grad(self):
         self.loss = np.zeros(self.shape_in)
         self.accuracy = 0.0
+        if self.chain is not None:
+            self.chain.zero_grad()
+        self.batch_size_count = 1
+
+    def update_weights(self, callback):
+        if self.chain is not None:
+            self.chain.update_weights(callback=callback)
+        self.batch_size_count = 1
 
     def accuracy_increment(self, x, t):
         if self.__class__.__name__ == "CrossEntropyLoss":
@@ -48,8 +68,11 @@ class LossLayer:
             return np.array((x > 0.5) == (t > 0.5)).astype(int) / t.shape[0]
         return 0.0
 
-    def update_weights(self, callback):
-        pass
+    def get_loss(self):
+        return np.mean(self.loss) / self.batch_size_count
+
+    def get_accuracy(self):
+        return self.accuracy / self.batch_size_count
 
 
 class RMSLoss(LossLayer):
@@ -62,6 +85,7 @@ class RMSLoss(LossLayer):
         f(x) = 0.5 * (x - t)^2
         --------------------------------------------
         '''
+        self.batch_size_count += 1
         self.x = x
         self.t = t
         self.loss += 0.5 * np.square(self.x - self.t)
@@ -89,6 +113,7 @@ class L1Loss(LossLayer):
         x < 0 : f(x) = -x
         --------------------------------------------
         '''
+        self.batch_size_count += 1
         self.x = x
         self.t = t
         self.loss += np.absolute(self.x - self.t)
@@ -123,6 +148,7 @@ class CrossEntropyLoss(LossLayer):
         f(x) = -t * ln(x)
         --------------------------------------------
         '''
+        self.batch_size_count += 1
         self.x = x
         self.t = t
         self.loss += -self.t * np.log(self.x)
@@ -152,6 +178,7 @@ class BinaryCrossEntropyLoss(LossLayer):
         f(x) = -t * ln(x) - (1.0 - t) * ln(1.0 - x)
         --------------------------------------------
         '''
+        self.batch_size_count += 1
         self.x = x
         self.t = t
         self.loss += -self.t * np.log(self.x) - (1.0 - self.t) * np.log(1.0 - self.x)
@@ -165,4 +192,45 @@ class BinaryCrossEntropyLoss(LossLayer):
         --------------------------------------------
         '''
         return np.divide(-self.t, self.x) + np.divide((1.0 - self.t), (1.0 - self.x))
+
+
+class KullbackLeiblerLoss(LossLayer):
+
+    def forward(self, x, t):
+        '''
+        f(x) = 0.5 * (mean^2 + variance - 1.0 - ln(variance))
+        '''
+        self.batch_size_count += 1
+        self.x = x
+        self.t = t
+
+        self.x_variance = self.x[:,:,:int(self.shape_in[2]/2)]
+        self.x_mean     = self.x[:,:,int(self.shape_in[2]/2):]
+
+        self.loss[:,:,:int(self.shape_in[2]/2)] += 0.5 * (self.x_variance - 1.0 - np.log(self.x_variance))
+        self.loss[:,:,int(self.shape_in[2]/2):] += 0.5 * (np.square(self.x_mean))
+
+        return self.x
+
+    def backward(self, grad_y):
+        '''
+        KL mean gradient = derivative of: 0.5*(x_mean^2)
+        '''
+        kl_mean_grad = self.x_mean
+
+        '''
+        KL variance gradient = derivative of: 0.5*(x_variance - log(variance) - 1)
+        '''
+        kl_variance_grad = 0.5 - np.divide(0.5, self.x_variance + 1e-9)
+
+        # combine the gradients from the decoder with the KL gradients ...
+        grad_y_variance = 0.5 * grad_y[:,:,:int(self.shape_in[2]/2)] + kl_variance_grad
+        grad_y_mean     = 0.5 * grad_y[:,:,int(self.shape_in[2]/2):] + kl_mean_grad
+
+        grad_x = np.ones(self.shape_in)
+        grad_x[:,:,:int(self.shape_in[2]/2)] = grad_y_variance
+        grad_x[:,:,int(self.shape_in[2]/2):] = grad_y_mean
+
+        return grad_x
+
 

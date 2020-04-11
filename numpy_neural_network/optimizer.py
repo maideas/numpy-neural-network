@@ -28,8 +28,6 @@ class Optimizer:
         self.beta2 = beta2
 
         self.steps = 1
-        self.loss = np.array([0.0])
-        self.accuracy = 0.0
 
         self.train_x_batch = np.array([])
         self.train_t_batch = np.array([])
@@ -66,7 +64,7 @@ class Optimizer:
             self.train_x_batch = self.norm['normalize'](self.train_x_batch, self.norm['x_mean'], self.norm['x_variance'])
             self.train_t_batch = self.norm['normalize'](self.train_t_batch, self.norm['y_mean'], self.norm['y_variance'])
 
-        # zero gradients and loss ...
+        # zero gradients and clear loss/accuracy ...
         self.model.zero_grad()
 
         # switch layers to training state ...
@@ -82,10 +80,6 @@ class Optimizer:
 
         g_batch = np.array(g_batch)
         y_batch = np.array(y_batch)
-
-        # get mini batch loss and accuracy ...
-        self.loss     = self.model.loss     / self.train_x_batch.shape[0]
-        self.accuracy = self.model.accuracy / self.train_x_batch.shape[0]
 
         # adjust the weights ...
         self.model.update_weights(self.update_weights)
@@ -108,8 +102,10 @@ class Optimizer:
         t_batch : optional target data, which can be used for loss and accuracy calculation
         returns : network model output data
         '''
-        # switch layers to non-training state and call layer step_init, which
-        # may set some values to 0 (e.g. VAE kl_loss) before batch prediction ...
+        # zero gradients and clear loss/accuracy ...
+        self.model.zero_grad()
+
+        # switch layers to non-training state and call layer step_init
         self.model.step_init(is_training=False)
 
         if self.norm is not None:
@@ -126,14 +122,10 @@ class Optimizer:
             # normalize target data ...
             t_batch = self.norm['normalize'](t_batch, self.norm['y_mean'], self.norm['y_variance'])
 
-            self.model.zero_grad()  # clears loss and accuracy values
             y_batch = []
             for x, t in zip(x_batch, t_batch):
                 x = self.model.predict(x, t)
                 y_batch.append(x)
-
-            self.loss     = self.model.loss     / x_batch.shape[0]
-            self.accuracy = self.model.accuracy / x_batch.shape[0]
 
         y_batch = np.array(y_batch)
 

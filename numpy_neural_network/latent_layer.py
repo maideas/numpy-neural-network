@@ -36,35 +36,21 @@ class Latent(Layer):
         self.x_mean = np.zeros(shape_in)
         self.x_variance = np.zeros(shape_in)
 
-        self.kl_loss = 0.0
-
-    def update_kl_loss(self):
-
-        kl_loss = 0.5 * (np.square(self.x_mean) + self.x_variance - 1.0 - np.log(self.x_variance))
-        self.kl_loss += np.mean(kl_loss)
 
     def forward(self, x):
 
-        self.x_variance = self.latent_variance_model.forward(x.copy())
-        self.x_mean     = self.latent_mean_model.forward(x.copy())
+        self.x_variance = self.latent_variance_model.forward(x)
+        self.x_mean     = self.latent_mean_model.forward(x)
 
         self.y[:,:,:self.shape_in[2]] = self.x_variance
         self.y[:,:,self.shape_in[2]:] = self.x_mean
 
-        self.update_kl_loss()
         return self.y
 
     def backward(self, grad_y):
 
-        # KL mean gradient = derivative of: 0.5*(x_mean^2) ...
-        kl_mean_grad = self.x_mean
-
-        # KL variance gradient = derivative of: 0.5*(x_variance - log(variance) - 1) ...
-        kl_variance_grad = 0.5 - np.divide(0.5, self.x_variance + 1e-9)
-
-        # combine the gradients from the decoder with the KL gradients ...
-        grad_y_variance = 0.5 * grad_y[:,:,:self.shape_in[2]] + kl_variance_grad
-        grad_y_mean     = 0.5 * grad_y[:,:,self.shape_in[2]:] + kl_mean_grad
+        grad_y_variance = grad_y[:,:,:self.shape_in[2]]
+        grad_y_mean     = grad_y[:,:,self.shape_in[2]:]
 
         grad_y_variance = self.latent_variance_model.backward(grad_y_variance)
         grad_y_mean     = self.latent_mean_model.backward(grad_y_mean)
@@ -76,40 +62,29 @@ class Latent(Layer):
         '''
         set all gradient values to zero
         '''
-        for layer in self.latent_mean_model.layers:
-            layer.zero_grad()
-        for layer in self.latent_variance_model.layers:
-            layer.zero_grad()
+        self.latent_mean_model.zero_grad()
+        self.latent_variance_model.zero_grad()
 
     def init_w(self):
         '''
         weight initialization
         '''
-        for layer in self.latent_mean_model.layers:
-            layer.init_w()
-        for layer in self.latent_variance_model.layers:
-            layer.init_w()
+        self.latent_mean_model.init_w()
+        self.latent_variance_model.init_w()
 
     def step_init(self, is_training=False):
         '''
         this method may initialize some layer internals before each optimizer mini-batch step
         '''
         self.is_training = is_training
-
-        for layer in self.latent_mean_model.layers:
-            layer.step_init(is_training=is_training)
-        for layer in self.latent_variance_model.layers:
-            layer.step_init(is_training=is_training)
-
-        self.kl_loss = 0.0
+        self.latent_mean_model.step_init(is_training=is_training)
+        self.latent_variance_model.step_init(is_training=is_training)
 
     def update_weights(self, callback):
         '''
         weight update
         '''
-        for layer in self.latent_mean_model.layers:
-            layer.update_weights(callback=callback)
-        for layer in self.latent_variance_model.layers:
-            layer.update_weights(callback=callback)
+        self.latent_mean_model.update_weights(callback=callback)
+        self.latent_variance_model.update_weights(callback=callback)
 
 
