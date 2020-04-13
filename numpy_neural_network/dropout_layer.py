@@ -16,25 +16,14 @@ class Dropout(Layer):
         data forward path
         '''
         if self.is_training:
-            return np.multiply(x, self.mask)
+            self.mask = np.array(np.random.random(self.shape_in) > self.prob).astype(int)
+            return np.multiply(x, self.mask) / (1e-3 + 1.0 - self.prob)
+
         return x
 
     def backward(self, grad_y):
         '''
         gradients backward path
         '''
-        if self.is_training:
-            return np.multiply(grad_y, self.mask)
         return grad_y
-
-    def step_init(self, is_training=False):
-        '''
-        this method may initialize some layer internals before each optimizer mini-batch step
-        '''
-        super(Dropout, self).step_init(is_training)
-
-        if is_training:
-            self.mask = np.array(np.random.random(self.shape_in) > self.prob).astype(int)
-        else:
-            self.mask = np.ones(self.shape_in)
 
