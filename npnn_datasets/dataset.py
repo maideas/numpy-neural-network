@@ -24,17 +24,40 @@ class DataSet:
         self.c_data = None
 
 
-    def prepare(self, train_fraction=0.7, normalize_x=True, normalize_y=True):
+    def gaussian_norm_x(self):
+        '''map data to centered gaussian distribution'''
+        self.x_mean, self.x_variance = self.get_mean_and_variance(self.x_data)
+        self.norm['x_mean']     = self.x_mean
+        self.norm['x_variance'] = self.x_variance
 
-        # calculate data mean and variance (if requested) ...
-        if normalize_x:
-            self.x_mean, self.x_variance = self.get_mean_and_variance(self.x_data)
-            self.norm['x_mean']     = self.x_mean
-            self.norm['x_variance'] = self.x_variance
-        if normalize_y:
-            self.y_mean, self.y_variance = self.get_mean_and_variance(self.y_data)
-            self.norm['y_mean']     = self.y_mean
-            self.norm['y_variance'] = self.y_variance
+    def gaussian_norm_y(self):
+        '''map data to centered gaussian distribution'''
+        self.y_mean, self.y_variance = self.get_mean_and_variance(self.y_data)
+        self.norm['y_mean']     = self.y_mean
+        self.norm['y_variance'] = self.y_variance
+
+    def image_norm_x(self):
+        '''map image data [0 ... 255] to centered range [-1.0 ... 1.0]'''
+        self.norm['x_mean']     = np.full(self.x_data[0].shape, 128.0)
+        self.norm['x_variance'] = np.full(self.x_data[0].shape, 128.0)
+
+    def image_norm_y(self):
+        '''map image data [0 ... 255] to centered range [-1.0 ... 1.0]'''
+        self.norm['y_mean']     = np.full(self.y_data[0].shape, 128.0)
+        self.norm['y_variance'] = np.full(self.y_data[0].shape, 128.0)
+
+    def image_norm_pos_x(self):
+        '''map image data [0 ... 255] to positive range [0.0 ... 1.0]'''
+        self.norm['x_mean']     = np.full(self.x_data[0].shape, 0.0)
+        self.norm['x_variance'] = np.full(self.x_data[0].shape, 256.0)
+
+    def image_norm_pos_y(self):
+        '''map image data [0 ... 255] to positive range [0.0 ... 1.0]'''
+        self.norm['y_mean']     = np.full(self.y_data[0].shape, 0.0)
+        self.norm['y_variance'] = np.full(self.y_data[0].shape, 256.0)
+
+
+    def prepare(self, train_fraction=0.7):
 
         # split data into train and validation data ...
         self.num_train_data = int(self.x_data.shape[0] * train_fraction)
@@ -97,22 +120,6 @@ class DataSet:
 
     def denormalize(self, data, mean, variance):
         return (data * variance) + mean
-
-
-    def get_partial_dataset(self, x_data_in, y_data_in, c_data_in, num_classes, samples_per_class):
-        x_data = []
-        y_data = []
-        c_data = []
-        samples = np.zeros(num_classes)
-
-        for x, y, c in zip(x_data_in, y_data_in, c_data_in):
-            if samples[c] < samples_per_class:
-                c_data.append(c)
-                y_data.append(y)
-                x_data.append(x)
-                samples[c] += 1
-
-        return np.array(x_data), np.array(y_data), np.array(c_data)
 
 
     def print_data_element(self, element):

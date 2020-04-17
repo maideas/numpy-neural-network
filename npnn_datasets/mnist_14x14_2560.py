@@ -6,14 +6,14 @@ from npnn_datasets import DataSet
 from zipfile import ZipFile
 from PIL import Image
 
-class MNIST_28x28(DataSet):
+class MNIST_14x14_2560(DataSet):
 
     def __init__(self, points=None, train_fraction=0.7):
-        super(MNIST_28x28, self).__init__()
+        super(MNIST_14x14_2560, self).__init__()
 
         data_dir = os.path.join(os.path.dirname(__file__), 'mnist')
 
-        zf = ZipFile("{0}/mnist_28x28.zip".format(data_dir))
+        zf = ZipFile("{0}/mnist_14x14_2560.zip".format(data_dir))
 
         self.x_data = []
         self.y_data = []
@@ -32,15 +32,10 @@ class MNIST_28x28(DataSet):
             self.y_data.append(onehot_c)
             self.c_data.append(c)
 
-        self.x_data = np.array(self.x_data).reshape((-1, 28, 28, 1))
+        self.x_data = np.array(self.x_data).reshape((-1, 14, 14, 1))
         self.y_data = np.array(self.y_data)
         self.c_data = np.array(self.c_data)
 
-        num_classes = 10
-        samples_per_class = 200
-        self.x_data, self.y_data, self.c_data = self.get_partial_dataset(
-            self.x_data, self.y_data, self.c_data, num_classes, samples_per_class
-        )
-
-        self.prepare(train_fraction, normalize_x=True, normalize_y=False)
+        self.image_norm_x()
+        self.prepare(train_fraction)
 
