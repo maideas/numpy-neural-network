@@ -35,7 +35,7 @@ model.layers = [
 
 loss_layer = npnn.loss_layer.CrossEntropyLoss(10)
 optimizer  = npnn.optimizer.Adam(alpha=1e-3)
-dataset    = npnn_datasets.MNIST()
+dataset    = npnn_datasets.MNIST_28x28_2560()
 
 optimizer.norm  = dataset.norm
 optimizer.model = model
