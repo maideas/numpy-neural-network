@@ -18,7 +18,7 @@ def ref_forward(x, pad_axis0, pad_axis1, pad_value):
     d_out = x.shape[2]  # = d_in
 
     # initialization of the 3D output array with "pad_value" ...
-    y = np.full((h_out, w_out, d_out), pad_value)
+    y = np.full((h_out, w_out, d_out), pad_value, dtype=x.dtype)
 
     for d_index in np.arange(d_in):
         for h_index in np.arange(h_in):
@@ -100,8 +100,8 @@ class TestPad2D(unittest.TestCase):
                 size_axis0 = np.random.randint(1, 10)
                 size_axis1 = np.random.randint(1, 10)
                 size_axis2 = np.random.randint(1, 10)
-                pad_axis0  = np.random.randint(1, 5)
-                pad_axis1  = np.random.randint(1, 5)
+                pad_axis0  = np.random.randint(0, 5)
+                pad_axis1  = np.random.randint(0, 5)
                 pad_value  = np.random.normal(0.0, 1.0)
                 #============================================
 
