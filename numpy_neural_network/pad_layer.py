@@ -15,7 +15,7 @@ class Pad2D(Layer):
             self.shape_in[0] + 2 * pad_axis0,
             self.shape_in[1] + 2 * pad_axis1,
             self.shape_in[2]
-        ), pad_value)
+        ), pad_value, dtype='float64')
 
     def forward(self, x):
         '''
