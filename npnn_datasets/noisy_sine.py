@@ -17,5 +17,7 @@ class NoisySine(DataSet):
         self.x_data = self.x_data.reshape(-1, 1)
         self.y_data = self.y_data.reshape(-1, 1)
 
-        self.prepare(train_fraction, normalize_x=True, normalize_y=True)
+        self.gaussian_norm_x()
+        self.gaussian_norm_y()
+        self.prepare(train_fraction)
 
