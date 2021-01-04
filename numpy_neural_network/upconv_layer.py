@@ -54,7 +54,7 @@ class UpConv2D(Layer):
         returns : layer output data
         '''
         assert x.shape == self.shape_in, \
-            "Conv2D: forward() data shape ({0}) has ".format(x.shape) + \
+            "UpConv2D: forward() data shape ({0}) has ".format(x.shape) + \
             "to be equal to layer shape_in ({0}) !".format(self.shape_in)
 
         self.x = x
@@ -75,7 +75,7 @@ class UpConv2D(Layer):
         returns : layer input gradients
         '''
         assert grad_y.shape == self.shape_out, \
-            "Conv2D: backward() gradient shape ({0}) has ".format(grad_y.shape) + \
+            "UpConv2D: backward() gradient shape ({0}) has ".format(grad_y.shape) + \
             "to be equal to layer shape_out ({0}) !".format(self.shape_out)
 
         self.batch_size_count += 1
