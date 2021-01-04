@@ -16,5 +16,6 @@ class XORFunction(DataSet):
         self.x_data += np.random.normal(0.0, 0.05, self.x_data.shape)
         self.y_data += np.random.normal(0.0, 0.05, self.y_data.shape)
 
-        self.prepare(train_fraction, normalize_x=True, normalize_y=False)
+        self.gaussian_norm_x()
+        self.prepare(train_fraction)
 
