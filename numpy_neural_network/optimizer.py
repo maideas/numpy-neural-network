@@ -74,9 +74,9 @@ class Optimizer:
         g_batch = []
         y_batch = []
         for x, t in zip(self.train_x_batch, self.train_t_batch):
-            g, x = self.model.step(x, t)
+            g, y = self.model.step(x, t)
             g_batch.append(g)
-            y_batch.append(x)
+            y_batch.append(y)
 
         g_batch = np.array(g_batch)
         y_batch = np.array(y_batch)
@@ -115,8 +115,8 @@ class Optimizer:
         if t_batch is None:
             y_batch = []
             for x in x_batch:
-                x = self.model.predict(x)
-                y_batch.append(x)
+                y = self.model.predict(x)
+                y_batch.append(y)
 
         else:
             # normalize target data ...
@@ -124,8 +124,8 @@ class Optimizer:
 
             y_batch = []
             for x, t in zip(x_batch, t_batch):
-                x = self.model.predict(x, t)
-                y_batch.append(x)
+                y = self.model.predict(x, t)
+                y_batch.append(y)
 
         y_batch = np.array(y_batch)
 
