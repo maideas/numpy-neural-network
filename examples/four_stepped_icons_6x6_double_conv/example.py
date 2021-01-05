@@ -59,7 +59,7 @@ valid_loss = []
 train_accuracy = []
 valid_accuracy = []
 
-for episode in np.arange(2500):
+for episode in np.arange(1000):
 
     # step the optimizer ...
     optimizer.step(*dataset.get_train_batch())
