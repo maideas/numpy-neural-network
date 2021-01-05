@@ -67,7 +67,7 @@ sample_layer.train_z = []
 kl_loss_layer = npnn.loss_layer.KullbackLeiblerLoss(shape_in=(1, 1, 4))
 loss_layer    = npnn.loss_layer.RMSLoss(shape_in=(3, 3, 1))
 optimizer     = npnn.optimizer.Adam(alpha=5e-3)
-dataset       = npnn_datasets.FourSmallImages()
+dataset       = npnn_datasets.FourSmallIcons()
 
 encoder_model.chain = kl_loss_layer
 kl_loss_layer.chain = decoder_model

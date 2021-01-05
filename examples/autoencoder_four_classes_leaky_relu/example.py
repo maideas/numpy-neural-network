@@ -27,7 +27,7 @@ model.layers = [
 
 loss_layer = npnn.loss_layer.RMSLoss(shape_in=(3, 3, 1))
 optimizer  = npnn.optimizer.Adam(alpha=1e-2)
-dataset    = npnn_datasets.FourSmallImages()
+dataset    = npnn_datasets.FourSmallIcons()
 
 optimizer.norm  = dataset.norm
 optimizer.model = model
