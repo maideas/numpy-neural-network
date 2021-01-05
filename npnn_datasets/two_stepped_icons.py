@@ -15,35 +15,35 @@ class TwoSteppedIcons(DataSet):
 
         for n in np.arange(2):
             for m in np.arange(2):
-                # 1 0 0
-                # 0 1 0
+                # 0 1 1
                 # 0 0 1
-                self.x_data[k, n+0, m+0, 0] = 255
-                self.x_data[k, n+1, m+0, 0] = 0
-                self.x_data[k, n+2, m+0, 0] = 0
+                # 0 0 0
+                self.x_data[k, n+0, m+0, 0] = 0
+                self.x_data[k, n+1, m+0, 0] = 255
+                self.x_data[k, n+2, m+0, 0] = 255
                 self.x_data[k, n+0, m+1, 0] = 0
-                self.x_data[k, n+1, m+1, 0] = 255
-                self.x_data[k, n+2, m+1, 0] = 0
+                self.x_data[k, n+1, m+1, 0] = 0
+                self.x_data[k, n+2, m+1, 0] = 255
                 self.x_data[k, n+0, m+2, 0] = 0
                 self.x_data[k, n+1, m+2, 0] = 0
-                self.x_data[k, n+2, m+2, 0] = 255
+                self.x_data[k, n+2, m+2, 0] = 0
                 self.y_data[k, 0] = 1
                 self.c_data[k] = 0
                 k += 1
 
         for n in np.arange(2):
             for m in np.arange(2):
-                # 0 0 1
-                # 0 1 0
+                # 0 0 0
                 # 1 0 0
+                # 1 1 0
                 self.x_data[k, n+0, m+0, 0] = 0
                 self.x_data[k, n+1, m+0, 0] = 0
-                self.x_data[k, n+2, m+0, 0] = 255
-                self.x_data[k, n+0, m+1, 0] = 0
-                self.x_data[k, n+1, m+1, 0] = 255
+                self.x_data[k, n+2, m+0, 0] = 0
+                self.x_data[k, n+0, m+1, 0] = 255
+                self.x_data[k, n+1, m+1, 0] = 0
                 self.x_data[k, n+2, m+1, 0] = 0
                 self.x_data[k, n+0, m+2, 0] = 255
-                self.x_data[k, n+1, m+2, 0] = 0
+                self.x_data[k, n+1, m+2, 0] = 255
                 self.x_data[k, n+2, m+2, 0] = 0
                 self.y_data[k, 1] = 1
                 self.c_data[k] = 1
