@@ -33,6 +33,11 @@ optimizer.norm  = dataset.norm
 optimizer.model = model
 optimizer.model.chain = loss_layer
 
+# an autoencoder target data equals its input data ...
+dataset.y_data = dataset.x_data.copy()
+dataset.image_norm_y()
+dataset.prepare()
+
 # because of the small dataset, use all data every time for validation loss calculation ...
 dataset.validation_batch_size = dataset.num_validation_data
 

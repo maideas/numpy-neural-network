@@ -15,16 +15,11 @@ matplotlib.rcParams['toolbar'] = 'None'
 
 model = npnn.Sequential()
 model.layers = [
-    npnn.Conv2D(shape_in=(4, 4, 1), shape_out=(2, 2, 4), kernel_size=3, stride=1),
-    npnn.LeakyReLU(2 * 2 * 4),
-    
-    npnn.MaxPool(shape_in=(2, 2, 4), shape_out=(1, 1, 4), kernel_size=2),
-    npnn.Dense((1, 1, 4), 2),
+    npnn.Conv2D(shape_in=(4, 4, 1), shape_out=(2, 2, 2), kernel_size=3, stride=1),
+    npnn.LeakyReLU(2 * 2 * 2),
 
-    #npnn.Conv2D(shape_in=(2, 2, 4), shape_out=(2, 2, 1), kernel_size=1, stride=1),
-    #npnn.LeakyReLU(2 * 2 * 1),
-    #npnn.Dense((2, 2, 1), 2),
-
+    npnn.AvgPool(shape_in=(2, 2, 2), shape_out=(1, 1, 2), kernel_size=2),
+    npnn.Shape(shape_in=(1, 1, 2), shape_out=(2)),
     npnn.Softmax(2)
 ]
 
@@ -43,9 +38,7 @@ dataset.validation_batch_size = dataset.num_validation_data
 
 plt.ion()
 plt.show()
-fig1, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(10,8))
-
-fig2, ((ax1b, ax2b), (ax3b, ax4b)) = plt.subplots(2, 2, figsize=(10,8))
+fig1, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3, 2, figsize=(10,12))
 
 episodes = []
 
@@ -123,24 +116,19 @@ for episode in np.arange(250):
     # batch network output plots
     #===========================================================================
 
-    #print("dataset.y_validation_data class 0: {0}".format(len(dataset.y_validation_data[:,0])))
-    #print("y_predicted_data class 0: {0}".format(len(y_predicted_data[:,0])))
-    #print("dataset.y_validation_data class 1: {0}".format(len(dataset.y_validation_data[:,1])))
-    #print("y_predicted_data class 1: {0}".format(len(y_predicted_data[:,1])))
-
     k = np.arange(dataset.num_validation_data)
 
-    ax1b.cla()
-    ax1b.set_ylabel('mini-batch class 0')
-    ax1b.set_ylim(-0.1, 1.1)
-    ax1b.scatter(k, dataset.y_validation_data[:,0], s=10, c='tab:green')
-    ax1b.scatter(k, y_predicted_data[:,0], s=10, c='tab:orange')
+    ax5.cla()
+    ax5.set_ylabel('mini-batch class 0')
+    ax5.set_ylim(-0.1, 1.1)
+    ax5.scatter(k, dataset.y_validation_data[:,0], s=10, c='tab:green')
+    ax5.scatter(k, y_predicted_data[:,0], s=10, c='tab:orange')
 
-    ax2b.cla()
-    ax2b.set_ylabel('mini-batch class 1')
-    ax2b.set_ylim(-0.1, 1.1)
-    ax2b.scatter(k, dataset.y_validation_data[:,1], s=10, c='tab:green')
-    ax2b.scatter(k, y_predicted_data[:,1], s=10, c='tab:orange')
+    ax6.cla()
+    ax6.set_ylabel('mini-batch class 1')
+    ax6.set_ylim(-0.1, 1.1)
+    ax6.scatter(k, dataset.y_validation_data[:,1], s=10, c='tab:green')
+    ax6.scatter(k, y_predicted_data[:,1], s=10, c='tab:orange')
 
     #===========================================================================
     # draw and save PNG to generate video files later on
@@ -148,7 +136,6 @@ for episode in np.arange(250):
 
     plt.draw()
     fig1.savefig('png/episode{0:04d}.png'.format(episode))
-    fig2.savefig('png_2/episode{0:04d}.png'.format(episode))
     plt.pause(0.001)
 
 input("Press Enter to close ...")
