@@ -160,6 +160,36 @@ class Sigmoid(FuncLayer):
         return self.grad_x
 
 
+class Swish(FuncLayer):
+    '''swish activation function'''
+
+    def sigmoid(self, x):
+        return 1.0 / (1.0 + np.exp(-x))
+
+    def forward(self, x):
+        '''
+        activation function, used to pass data forward
+        --------------------------------------------
+        f(x) = x * sigmoid(x)
+        --------------------------------------------
+        '''
+        self.sigmoid_x = self.sigmoid(x)
+        self.y = x * self.sigmoid_x
+        return self.y
+
+    def backward(self, grad_y):
+        '''
+        activation function derivative, used to pass gradients backward
+        --------------------------------------------
+        f'(x) = sigmoid(x) + x * sigmoid(x) - x * sigmoid(x) * sigmoid(x)
+        gradient(x) = (sigmoid(x) + x * sigmoid(x) - x * sigmoid(x) * sigmoid(x)) * gradient(y)
+                    = (sigmoid(x) + f(x) - f(x) * sigmoid(x)) * gradient(y)
+        --------------------------------------------
+        '''
+        self.grad_x = (self.sigmoid_x + self.y - self.y * self.sigmoid_x) * grad_y
+        return self.grad_x
+
+
 class Softplus(FuncLayer):
     '''softplus activation function'''
 
